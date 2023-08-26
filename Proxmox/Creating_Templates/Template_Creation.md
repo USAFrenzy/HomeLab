@@ -119,6 +119,11 @@ _____________________________
 
 
 #### 5) Power on the VM ####
+
+#### 5a) Recommended step for Debian 12 ####
+- As I plan on using this for Debian 12, on their site they recommend adding the following line to ```/etc/apt/sources.list``` before running "```apt update && apt upgrade```":
+  - "``` deb http://security.debian.org/ bookworm-security main contrib non-free non-free-firmware```" 
+
 #### 6) Enabling qemu-guest-agent ####
 - If, for whatever reason, ```qemu-guest-agent``` wasn't installed previously when creating the Virtual Machine in step 3 of part 1:
   - Install the qemu-guest-agent by running "```sudo apt update && sudo apt upgrade -y && sudo apt install qemu-guest-agent```"
