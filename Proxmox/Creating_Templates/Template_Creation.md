@@ -70,12 +70,7 @@ _____________________________
 
 ## Part 2 - Post Virtual Machine Creation Steps ##
 
-#### 1) Click on the newly created VM and navigate to the ```Hardware``` tab:
-- Click on ```Add``` and select "```CloudInit Drive```"
-  - Select the storage pool to use to store this drive
-  #### 2) After Settings have been configure for the Cloud-Init image, Click ```Regenerate Image``` ####
-
-#### 3) The Next Step Requires Pulling A Cloud-Image For The VM ####
+#### 1) This Step Requires Pulling A Cloud-Image For The VM ####
 - This Can Be Any OS That Supports Cloud Instantiations.
   - For Example:
     - For Debian,  you would pull the image from one of the ones listed on ```https://cloud.debian.org/images/cloud/```
@@ -87,18 +82,19 @@ _____________________________
       - The new extension is needed for this to work specifically with live snapshots
       - To do this, run "```qm importdisk <template_vm_id> /tmp/<chosen_name.img> local --format qcow2```"
 
-#### 4) Adding The Disk For The VM To Use ####
+#### 2) Adding The Disk For The VM To Use ####
 - Navigate back to the ```Hardware``` tab and where the new disk is, select it and click edit to add it to the VM
 - This step is optional, but for best performance when already being stored and run on an actual SSD, check ```SSD emulation``` under the ```Advanced``` settings
 - Check ```Discard``` to enable thin-provisioning and allow Proxmox to reclaim storage space if the VM is deleted or shutdown
 
 
-#### 5) Adding Serial Port And Cloud-Init Drive
+#### 3) Adding Serial Port And Cloud-Init Drive
 - While still at the ```Hardware``` tab, select ```Add``` and add a ```Serial Port``` and ```CloudInit Drive```
 - The serial port is added to the virtual machine for display output as, without it, there may only be a black screen visible
   - After adding the serial port, double click the ```Display``` field and set ```Serial terminal 0``` as the graphics card
     - This will allow Proxmox to have access to the VM's console and allow us to interact with the virtual machine
 - Navigate over to the ```Cloud-Init``` tab and configure the settings available here
+  - Select the storage pool to use to store this drive
   -  Under this tab, settings that will be used for each VM on creation can be applied.
      - This includes:
        - Username
@@ -107,28 +103,33 @@ _____________________________
        - DNS servers and DNS Domain
        - Network Configuration
          - A preferred way may be to set this to DHCP initially and then set this to static afterwards if needed
-
-#### 6) Enabling the newly created drive and changing the boot order ####
+  - After Settings have been configured for ```Cloud-Init``` , Click ```Regenerate Image```
+#### 4) Enabling the newly created drive and changing the boot order ####
 - Navigate over to the ```Options``` tab
   - Select ```Boot Order``` and move the "```scsi0```" disk towards the top and check the ```Enabled``` box
   - Enable ```Start at boot``` to automatically start when Proxmox is booted up
 
+<br>
 
-### Note: Steps 8 through 11 are done on the VM while the VM is running ###
+_____________________________
 
-#### 7) Power on the VM ####
-#### 8) Enabling qemu-guest-agent ####
+### Note: Steps 5 through 9 are done on the VM while the VM is running ###
+_____________________________
+
+
+#### 5) Power on the VM ####
+#### 6) Enabling qemu-guest-agent ####
 - If, for whatever reason, ```qemu-guest-agent``` wasn't installed previously when creating the Virtual Machine in step 3 of part 1:
   - Install the qemu-guest-agent by running "```sudo apt update && sudo apt upgrade -y && sudo apt install qemu-guest-agent```"
   - Enable the agent by running "```sudo systemctl enable qemu-guest-agent```"
 
-#### 9) Cleaning up ssh host keys ####
+#### 7) Cleaning up ssh host keys ####
 Now we need to remove the ssh host keys so that the template doesn't copy them over to each clone made from the template (avoiding client connection confusion)
 - Move on over to the ```ssh``` directory by running "```cd /etc/ssh```"
 - Remove the host ssh files by running "```sudo rm ssh_host_*```"
   - This step forces ```cloud-init``` to regenerate these key files when cloning the template
 
-#### 10) Clearing the machine-id file ####
+#### 8) Clearing the machine-id file ####
 After removing the ssh host key files, we also need to ensure the ```machine id``` is unique per VM instance
 - We do this by truncating the ```machine-id``` file by running "```sudo truncate -s 0 /etc/machine-id```"
   - To check the file is now empty, run "```cat /etc/machine-id```"
@@ -136,12 +137,12 @@ After removing the ssh host key files, we also need to ensure the ```machine id`
   - If a symbolic link doesn't exist yet, we need to create a symbolic link to the ```machine-id``` file by running "```sudo ln -s /etc/machine-id /var/lib/dbus/machine-id```"
     - If a file exists here, delete it before creating the symbolic link
 
-#### 11) Last Remaining Steps Before Conversion To Template ####
+#### 9) Last Remaining Steps Before Conversion To Template ####
 - If ```cloud-init``` isn't installed yet, run "```sudo apt install cloud-init```" to install it now
 - Finally, run "```cloud-init clean```"
 
-#### 12) Shut down the VM ####
+#### 10) Shut down the VM ####
 
-#### 13) Convert the VM to a template by right-clicking the VM and selecting "```Convert to template```"
+#### 11) Convert the VM to a template by right-clicking the VM and selecting "```Convert to template```"
 
 _____________________________
