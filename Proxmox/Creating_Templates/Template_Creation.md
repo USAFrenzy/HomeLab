@@ -83,7 +83,7 @@ _____________________________
       - To do this, run "```qm importdisk <template_vm_id> /tmp/<chosen_name.img> local --format qcow2```"
 
 #### 2) Adding The Disk For The VM To Use ####
-- Navigate back to the ```Hardware``` tab and where the new disk is, select it and click edit to add it to the VM
+- Navigate back to the ```Hardware``` tab and where the new disk is, select it and click edit to add the ```CloudInit Drive``` created from step 1 to the VM
 - This step is optional, but for best performance when already being stored and run on an actual SSD, check ```SSD emulation``` under the ```Advanced``` settings
 - Check ```Discard``` to enable thin-provisioning and allow Proxmox to reclaim storage space if the VM is deleted or shutdown
 
@@ -138,11 +138,20 @@ After removing the ssh host key files, we also need to ensure the ```machine id`
     - If a file exists here, delete it before creating the symbolic link
 
 #### 9) Last Remaining Steps Before Conversion To Template ####
+- Run "```sudo apt clean```" to clean up any package caches leftover
+- Run "```sudo apt autoremove```" to clean up any possible leftover package remnants
 - If ```cloud-init``` isn't installed yet, run "```sudo apt install cloud-init```" to install it now
-- Finally, run "```cloud-init clean```"
+  - Finally, run "```cloud-init clean```"
 
 #### 10) Shut down the VM ####
 
 #### 11) Convert the VM to a template by right-clicking the VM and selecting "```Convert to template```"
 
+
+#### 12) Optional Steps After The Template Has Been Made ####
+- When cloning the template into a VM, prefer to use ```full clone``` as this copies the entire template and not a differential copy
+- When firing up VMs made from this template, they will have the same name due to what was set in the template
+  - To ammend this, run "```sudo nano \etc\hostname```" and rename the default name to whatever is desired
+  - Then run "```sudo nano \etc\hosts```" and rename the default name used to whatever was used in the previous step
+  - Then reboot the VM
 _____________________________
