@@ -75,12 +75,13 @@ _____________________________
   - For Example:
     - For Debian,  you would pull the image from one of the ones listed on ```https://cloud.debian.org/images/cloud/```
     - For Ubuntu, you would pull the image from one of the ones listed on ```https://cloud-images.ubuntu.com/releases/```
-- Once a cloud image has been located, go to the Proxmox shell and run "```wget <distro_image> -O /tmp/<chosen_name.img>```"
-  - To import the image into the lvm-datastore, run "```qm importdisk <template_vm_id> /tmp/<chosen_name.img> lvm-datastore```"
-  - To view the imported image, run "```pvesm list lvm-datastore```"
+- Once a cloud image has been located, go to the Proxmox shell and run "```wget <distro_image> -O /tmp/<chosen_name>```"
+  - To import the image into the lvm-datastore, run "```qm importdisk <template_vm_id> /tmp/<chosen_name> <the_chosen_storage_pool>```" (in my case, this is the local-zfs pool)
+  - To view the imported image, run "```pvesm list <the_chosen_storage_pool>```"
     - If using local or NFS storage, the image should be imported in ```qcow2``` format
       - The new extension is needed for this to work specifically with live snapshots
-      - To do this, run "```qm importdisk <template_vm_id> /tmp/<chosen_name.img> local --format qcow2```"
+      - To do this, run "```qm importdisk <template_vm_id> /tmp/<chosen_name> local --format qcow2```" 
+        - This is only neccessary for formats that aren't already in qcow2 format (debian 12 offers cloud images with the qcow2 format already for instance)
 
 #### 2) Adding The Disk For The VM To Use ####
 - Navigate back to the ```Hardware``` tab and where the new disk is, select it and click edit to add the ```CloudInit Drive``` created from step 1 to the VM
