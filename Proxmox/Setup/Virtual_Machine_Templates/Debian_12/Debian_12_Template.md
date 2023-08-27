@@ -68,6 +68,7 @@ ____________________
 
 ____________________
 ## Post Creation Setup ##
+
 - Added ```deb http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware``` to ```/etc/apt/sources.list```
 - Ran ```apt-get upgrade && apt-get update -y```
 - Ran ```apt-get install qemu-guest-agent```
