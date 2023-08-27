@@ -105,12 +105,11 @@ _____________________________
        - Network Configuration
          - A preferred way may be to set this to DHCP initially and then set this to static afterwards if needed
   - After Settings have been configured for ```Cloud-Init``` , Click ```Regenerate Image```
+
 #### 4) Enabling the newly created drive and changing the boot order ####
 - Navigate over to the ```Options``` tab
   - Select ```Boot Order``` and move the "```scsi0```" disk towards the top and check the ```Enabled``` box
   - Enable ```Start at boot``` to automatically start when Proxmox is booted up
-
-<br>
 
 _____________________________
 
@@ -118,15 +117,21 @@ _____________________________
 _____________________________
 
 
-#### 5) Power on the VM ####
+#### 5a) Power on the VM ####
 
-#### 5a) Recommended step for Debian 12 ####
-- As I plan on using this for Debian 12, on their site they recommend adding the following line to ```/etc/apt/sources.list``` before running "```apt update && apt upgrade```":
+#### 5b) Recommended step for Debian 12 ####
+- As I plan on using this for Debian 12, on their site they recommend adding the following line to ```/etc/apt/sources.list``` before running "```apt-get update && apt-get upgrade```":
   - "```deb http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware```" 
 
+#### 5c) Console Into The VM ####
+- Once the console appears, let the VM boot fully and then login
+- Run eiether "```sudo apt upgrade && sudo apt update -y```" or "```sudo apt-get upgrade && sudo apt-get update -y```" depending on the distro choice
+
 #### 6) Enabling qemu-guest-agent ####
-- If, for whatever reason, ```qemu-guest-agent``` wasn't installed previously when creating the Virtual Machine in step 3 of part 1:
-  - Install the qemu-guest-agent by running "```sudo apt update && sudo apt upgrade -y && sudo apt install qemu-guest-agent```"
+- If the ```Qemu Agent``` wasn't selected from step 3 of part 1 or if the ```qemu-guest-agent``` hasn't been installed:
+  - To check if the ```qemu-guest-agent``` is present, run "```dpkg -l qemu-guest-agent```"
+  - If it's not present, run:
+    - Install the ```qemu-guest-agent``` by running "```sudo apt install qemu-guest-agent```" or "```sudo apt-get install qemu-guest-agent```"
   - Enable the agent by running "```sudo systemctl enable qemu-guest-agent```"
 
 #### 7) Cleaning up ssh host keys ####
@@ -144,9 +149,9 @@ After removing the ssh host key files, we also need to ensure the ```machine id`
     - If a file exists here, delete it before creating the symbolic link
 
 #### 9) Last Remaining Steps Before Conversion To Template ####
-- Run "```sudo apt clean```" to clean up any package caches leftover
-- Run "```sudo apt autoremove```" to clean up any possible leftover package remnants
-- If ```cloud-init``` isn't installed yet, run "```sudo apt install cloud-init```" to install it now
+- Run "```sudo apt clean```" or "```sudo apt-get clean```" to clean up any package caches leftover
+- Run "```sudo apt autoremove```" or "```sudo apt-get autoremove```"to clean up any possible leftover package remnants
+- If ```cloud-init``` isn't installed yet, run "```sudo apt install cloud-init```" or "```sudo apt-get install cloud-init```" to install it now
   - Finally, run "```cloud-init clean```"
 
 #### 10) Shut down the VM ####
@@ -156,8 +161,8 @@ After removing the ssh host key files, we also need to ensure the ```machine id`
 
 #### 12) Optional Steps After The Template Has Been Made ####
 - When cloning the template into a VM, prefer to use ```full clone``` as this copies the entire template and not a differential copy
-- When firing up VMs made from this template, they will have the same name due to what was set in the template
-  - To ammend this, run "```sudo nano \etc\hostname```" and rename the default name to whatever is desired
-  - Then run "```sudo nano \etc\hosts```" and rename the default name used to whatever was used in the previous step
+- When firing up VMs made from this template, they *may* have the same name due to what was set in the template. If happens to be the case:
+  - To ammend this, run "```sudo nano /etc/hostname```" and rename the default name to whatever is desired
+  - Then run "```sudo nano /etc/hosts```" and rename the default name used to whatever was used in the previous step
   - Then reboot the VM
 _____________________________

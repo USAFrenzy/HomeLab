@@ -1,8 +1,11 @@
-# Given That This Method Is Only Used To Avoid Issues With Direct Installation Of PVE 8.0 On New Hardware With An Nvidia GPU, No Prior Backups Are Needed Before Upgrading.
+# Given That This Method Is Only Used To Avoid Issues With Direct Installation Of PVE 8.0.2 On New Hardware With An Nvidia GPU, No Prior Backups Are Needed Before Upgrading.
 
+<br>
+
+-------------------------
 ## NOTE: This Process uses an install-then-upgrade approach of a fresh install of Proxmox 7.4 found [HERE](https://www.proxmox.com/en/downloads/proxmox-virtual-environment/iso/proxmox-ve-7-4-iso-installer)
 
-<br><br>
+<br>
 
 -------------------------
 
