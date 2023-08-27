@@ -45,24 +45,24 @@ ____________________
 
 ### Options ###
 
-| Name                        	| Debian-12-Base                       	|   	|   	|   	|   	|
-|-----------------------------	|--------------------------------------	|---	|---	|---	|---	|
-| Start at boot               	| yes                                  	|   	|   	|   	|   	|
-| Start/Shutdown Order        	| order:<br>any                        	|   	|   	|   	|   	|
-| OS Type                     	| Linux 6.x-2.6 Kernel                 	|   	|   	|   	|   	|
-| Boot Order                  	| scsi0, ide2, net0                    	|   	|   	|   	|   	|
-| Use Tablet For Pointer      	| Yes                                  	|   	|   	|   	|   	|
-| Hotplug                     	| Disk, Network, USB                   	|   	|   	|   	|   	|
-| ACPI support                	| Yes                                  	|   	|   	|   	|   	|
-| KVM hardware virtualization 	| Yes                                  	|   	|   	|   	|   	|
-| Freeze CPU at startup       	| No                                   	|   	|   	|   	|   	|
-| Use Local Time For RTC      	| Default (Enabled for Windows)        	|   	|   	|   	|   	|
-| RTC start date              	| now                                  	|   	|   	|   	|   	|
-| SMBIOS settings (type1)     	| 064946d8-f6dd-4848-b326-4320e5e6b69b 	|   	|   	|   	|   	|
-| QEMU Guest Agent            	| Enabled                              	|   	|   	|   	|   	|
-| Protection                  	| No                                   	|   	|   	|   	|   	|
-| Spice Enhancements          	| none                                 	|   	|   	|   	|   	|
-| VM State Storage            	| Automatic                            	|   	|   	|   	|   	|
+| Name                        	| Debian-12-Base                       	|
+|-----------------------------	|--------------------------------------	|
+| Start at boot               	| yes                                  	|
+| Start/Shutdown Order        	| order:<br>any                        	|
+| OS Type                     	| Linux 6.x-2.6 Kernel                 	|
+| Boot Order                  	| scsi0, ide2, net0                    	|
+| Use Tablet For Pointer      	| Yes                                  	|
+| Hotplug                     	| Disk, Network, USB                   	|
+| ACPI support                	| Yes                                  	|
+| KVM hardware virtualization 	| Yes                                  	|
+| Freeze CPU at startup       	| No                                   	|
+| Use Local Time For RTC      	| Default (Enabled for Windows)        	|
+| RTC start date              	| now                                  	|
+| SMBIOS settings (type1)     	| 064946d8-f6dd-4848-b326-4320e5e6b69b 	|
+| QEMU Guest Agent            	| Enabled                              	|
+| Protection                  	| No                                   	|
+| Spice Enhancements          	| none                                 	|
+| VM State Storage            	| Automatic                            	|
 
 <br><br>
 
