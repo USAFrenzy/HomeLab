@@ -62,3 +62,17 @@ _________________________
 
 
 <br>
+
+
+_________________________
+
+ ### Enabled Alerts
+_________________________
+- Setup Email Relay for rc-server domain's email
+- Setup alerts for:
+  - Backups
+  - S.M.A.R.T
+  - ZFS
+
+
+<br>
