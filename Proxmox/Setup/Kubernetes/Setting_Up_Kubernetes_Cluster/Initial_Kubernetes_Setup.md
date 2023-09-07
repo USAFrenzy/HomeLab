@@ -54,7 +54,7 @@ ____________________________________________________________________
 <br>
 
 ## 2) Disabling Swap
-- This can be done by running "```sudo swappoff -a```" (this temporarily disables swap until a reboot occurs)
+- This can be done by running "```sudo swapoff -a```" (this temporarily disables swap until a reboot occurs)
 - To verify that swap has been disabled, run "``` free -h```
   - The swap line should read:  ```Swap:             0B          0B          0B```
 - To make this permanent, run "```sudo nano /etc/fstab```" and comment out the line that holds any swap info
