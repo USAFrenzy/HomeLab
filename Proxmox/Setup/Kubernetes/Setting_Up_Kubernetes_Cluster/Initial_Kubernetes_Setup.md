@@ -136,7 +136,7 @@ ____________________________________________________________________
 - Run "```curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg```"
 - Run "```echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list```"
 - Run "```sudo apt update```"
-- Run "```sudo apt instal -y kubelet kubeadm kubectl```"
+- Run "```sudo apt install -y kubelet kubeadm kubectl```"
 - Run "```sudo apt-mark hold kubelet kubeadm kubectl```"
 - Run "```ln -s /opt/cni/bin /usr/lib/cni```"
 
