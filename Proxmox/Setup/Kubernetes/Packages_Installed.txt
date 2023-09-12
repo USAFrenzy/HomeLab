@@ -1,0 +1,36 @@
+-----------------------------------------------------------
+NOTE: All nodes are utilizing cgroupv2 via systemd driver
+-----------------------------------------------------------
+
+-----------------------------------------------------------
+        common packages installed on all via template
+-----------------------------------------------------------
+- openssh-client
+- openssh-server
+- kubeadm
+- kubectl
+- kubelet
+- kubernetes
+- containerd
+
+-----------------------------------------------------------
+                   master-node specific 
+-----------------------------------------------------------
+- ntp
+- git
+- helm
+  - stable  (https://charts.helm.sh/stable)
+  - bitnami (https://charts.bitnami.com/bitnami)
+  - rancher (https://releases.rancher.com/server-charts/stable)
+
+-----------------------------------------------------------
+                   worker-node specific
+-----------------------------------------------------------
+-
+
+-----------------------------------------------------------
+                   load-balancer specific
+-----------------------------------------------------------
+- haproxy
+- keepalived
+
