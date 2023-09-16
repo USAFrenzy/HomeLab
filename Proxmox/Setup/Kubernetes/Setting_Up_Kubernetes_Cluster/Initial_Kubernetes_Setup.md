@@ -38,10 +38,6 @@ ____________________________________________________________________
 
 ____________________________________________________________________
 
-# <center>Part One: Common Installation Steps That Track Across All Nodes (Control Node(s) And Any Worker Nodes)</center>
-
-
-<br>
 
 ## 1) Checking Node Hosts
 - Ensure each node has a unique hostname
@@ -90,19 +86,58 @@ ____________________________________________________________________
 
 <br>
 
-# <center> NOW, THE STEPS ARE ABOUT TO FORK HERE.</center>
-
-## I WOULD STILL LIKE TO GET THE CGROUPV2 WORKING, HOWEVER, I'M RUNNING INTO ISSUES AT THE MOMENT WITH IT, SO, INSTEAD WE'RE GOING TO FORK INTO FIRST GOING OVER THE METHOD THAT WORKED FOR ME AND THEN THE WORK IN PROGRESS METHOD BELOW THAT.
+## 5) Setup Local DNS Entries On Each Host (Ran Into Several Issues When This Step Was Omitted)
+- Run "```nano /etc/hosts/```" on each master node, worker node, and load balancer node
+- In each node's ```hosts``` file:
+  - Add every other node's local DNS entry and their IP address
+- For example, this setup uses the following for the master nodes:
+  - ```192.168.3.9  k8s-master-01```
+  - ```192.168.3.10 k8s-master-02```
+  - ```192.168.3.11 k8s-master-03```
+  - Therefore, the ```hosts``` file of each and every node will also include those entries
+  - This is neccessary to allow the cluster to resolve host names and addresses
+- Next, since this lab's setup uses ```cloud-init```, we need to modify another file to keep the cloud config from overwriting these additions
+- Run "```nano /etc/cloud/cloud.cfg```"
+  - Comment out "```update_etc_hosts```"
+  - Add "```manage_etc_hosts: false```"
+  - Save and exit the file and then reboot.
+  - Ensure the newly added host entries weren't overridden by running "```cat /etc/hosts/```"
 
 <br>
 
-____________________________________________________________________
+### NOTE: Step 6 Applies To All Nodes Being Configured In The Load Balancer Cluster Setup
 
-# <center> Method That Has Worked </center>
+<br>
 
-____________________________________________________________________
+## 6) Configuring The Load Balancer Nodes (For this setup, there are two VMs acting as the load balancer nodes)
+- Install both ```keepalived``` and ```haproxy``` by running "```apt install keepalived haproxy psmisc -y```"
+- Run "```nano /etc/haproxy/haproxy.cfg```" to configure the HAProxy configuration file
+  - Refer to this [CONFIG](../High_Availability/Load_Balancers/haproxy.conf) file for ```haproxy.cfg```
+  - Set the server name to your local DNS entry for the kubernetes master nodes as well as their corresponding IP addresses
+  - Run "```systemctl restart haproxy```"
+  - Run "```systemctl enable haproxy```"
+- Run "```nano /etc/keepalived/keepalived.conf```" to configure the ```keepalived``` configuration file
+  - Refer to this [CONFIG](../High_Availability/Load_Balancers/keepalived.conf) file for ```keepalived.conf```
+  - NOTE: For the ```interface``` field, this is the interface ID -> normally ```eth0```
+  - NOTE: For the ```unicast_src_ip``` field, that will be the IP address of the ```CURRENT``` machine the config file is being edited on
+  - NOTE: For the ```unicast_peer``` field, this is the IP address of any and all other nodes being configured in the load-balancer cluster
+  - NOTE: The ```virtual_ipaddress``` field is the IP address that the will be configured as the IP address that communicates with ```ANY AND ALL``` load balancers in this cluster
+    - This ```virtual_ipaddress``` value is the very same value that will be used when setting up the kubernetes cluster's endpoint later on
+    - You can refer to this virtual IP address by its value when setting up the k8s cluster later on, but it would make sense to add this virtual IP as a host entry under ```/etc/hosts/``` on all nodes as well
+  - Run "```systemctl restart keepalived```"
+  - Run "```systemctl enable keepalived```"
+  - Verify that it all works as intended:
+    - Run "```ip a s```" to show the IP addresses assigned to the interfaces
+    - Run "```systemctl stop haproxy```" to stop haproxy
+      - This should force the other node in the cluster to automatically pick up the virtual IP address thanks to ```keepalived```
+    - Run "```ip a s```" again and the virtual IP address should be gone now
+    - On the other node(s) in the load balancer, run "```ip a s```" and you should see that the virtual IP address has been assigned to one of them
+    - On the original node that the ```haproxy``` service was stopped, restart it with "```systemctl start haproxy```"
+<br>
 
-## 5) Setting Up ```containerd``` And Networking
+### NOTE: THE BELOW STEPS ARE RUN ON ALL OF THE MASTER NODES AND THE WORKER NODES FOR THE KUBERNETES CLUSTER
+
+## 7) Setting Up ```containerd``` And Networking
 - Run "```sudo apt install -y containerd iptables```" (This is in addition to what was run in step 4 above)
 - Configure the networking by running:
   -  "```cat > /etc/sysctl.d/99-k8s-cri.conf <<EOF```"
@@ -114,7 +149,7 @@ ____________________________________________________________________
 
 <br>
 
-## 6) Enabling The Modules
+## 8) Enabling The Modules
 - Run "```modprobe overlay```"
 - Run "```modprobe br_netfilter```"
 - Run "```echo -e overlay\\nbr_netfilter > /etc/modules-load.d/k8s.conf```"
@@ -123,16 +158,16 @@ ____________________________________________________________________
 
 <br>
 
-## 7) Swapping to CgroupV1
+## 9) Swapping to CgroupV2
 - Run "```sudo nano /etc/default/grub```"
-  - Add  "```systemd.unified_cgroup_hierarchy=0```" To The Line That Contains ```GRUB_CMDLINE_LINUX```
-    - I.E. --> "```GRUB_CMDLINE_LINUX="systemd.unified_cgroup_hierarchy=0"```"
+  - Add  "```systemd.unified_cgroup_hierarchy=1```" To The Line That Contains ```GRUB_CMDLINE_LINUX```
+    - I.E. --> "```GRUB_CMDLINE_LINUX="systemd.unified_cgroup_hierarchy=1"```"
 - Run "```update-grub```"
 - Run "```reboot```
 
 <br>
 
-## 8) Installing Kubernetes (This is the portion that uses the community-owned repo now that the others have been deprecated )
+## 10) Installing Kubernetes (This is the portion that uses the community-owned repo now that the others have been deprecated )
 - Run "```curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg```"
 - Run "```echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list```"
 - Run "```sudo apt update```"
@@ -142,9 +177,9 @@ ____________________________________________________________________
 
 <br>
 
-## 9) Configuring Control Plane
-- Run "```kubeadm init --control-plane-endpoint=<your_master_cluster_endpoint_or_single_controller_ip> --pod-network-cidr=<your_pod_network/16> --cri-socket=unix:///run/containerd/containerd.sock```"
-  - Make note of and save the tokens and hash value generated for you here as they are used in the next step
+## 11) Configuring Control Plane (Choose One Master Node To Run These On, The Other Master Nodes Will Be Added To The Cluster With The Join Command Later)
+- Run "```kubeadm init --control-plane-endpoint=<your_load_balancer_IP_address> --pod-network-cidr=<your_pod_network/16> --upload-certs```"
+  - Make note of and save the tokens, hash value, and commands printed/generated for you here as they are used in the next step
 - Run "```mkdir -p $HOME/.kube```"
 - Run "```cp -i /etc/kubernetes/admin.conf $HOME/.kube/config```"
 - Run "```chown $(id -u):$(id -g) $HOME/.kube/config```"
@@ -152,105 +187,26 @@ ____________________________________________________________________
 - Run "```kubectl apply -f calico.yaml```"
 - Run "```kubectl get nodes```" -> Stop here until ```STATUS``` says ```Ready```
 - Run "```kubectl get pods -A```" -> Stop here until ```STATUS``` says ```Running``` for all pods
-
 <br>
 
-## 10) Configuring Worker Nodes
+## 12) Joining Other Master Nodes
+- We need to make sure the other master nodes have the certificates generated from the master node that was used to initiate the cluster:
+  - Copy the certificates over to the other master nodes (Make Sure You Have The Correct Permissions To Allow This, Default Permissions Are 600)
+  - Run "```scp user@currentMasterNode:/path/to/kube/certs/*ca.pem user@otherMasterNode:/path/to/keep/certs/*ca.pem```
+    - The certs are usually found under ```/etc/kubernetes/pki/```
+    - Do this for each ```*ca.pem``` file for each master node in the cluster
+  - Run the command that was generated for you in step 11 for the worker nodes
+    - It should look something like: "```kubeadm join <virtual_IP_address_of_load_balancer>:6443 --token <your_genereated_token> --discovery-token-ca-cert-hash sha256:<your_generated_hash> --control-plane --certificate-key <cert_key_hash>```"
+  - Run "```kubectl get nodes```" and wait until ```STATUS``` reads ```Ready``` for all nodes
+    - If a master node is stuck, try restarting the ```kubectl``` and ```containerd``` services.
+    - If that still doesn't work, disable ```apparmor``` and restart the ```kubectl``` and ```containerd``` services
+<br>
+
+## 13) Joining The Worker Nodes
 - Run "```kubeadm join <endpoint_used_in_init_cmd>:6443 --token <your_genereated_token> --discovery-token-ca-cert-hash sha256:<your_generated_hash>```
 - Run "```kubectl get nodes```" and wait until ```STATUS``` reads ```Ready``` for all nodes
-- And That's It!
-
+  - If a worker node is stuck, try restarting the ```kubectl``` and ```containerd``` services.
+  - If that still doesn't work, disable ```apparmor``` and restart the ```kubectl``` and ```containerd``` services
 <br>
 
-____________________________________________________________________
-
-# <center> Method That Is Still A Work In Progress </center>
-
-____________________________________________________________________
-
-
-## 5) Forwarding IPv4 And Allowing IP Tables See Bridged Traffic
-- Run "```cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf```"
-  - Next Run "```overlay```"
-  - Next Run "```br_netfilter```"
-  - Lastly, Run "```EOF```"
-- Run "```sudo modprobe overlay```"
-- Run "```sudo modprobe br_netfilter```"
-- Run "```cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf```"
-  - Next Run "```net.bridge.bridge-nf-call-iptables=1```
-  - Next Run "```net.bridge.bridge-nf-call-ip6tables=1```
-  - Next Run "```net.ipv4.ip_forward=1```"
-  - Lastly, Run "```EOF```"
-- Next Run "```sudo sysctl --system```" to apply the sysctl parameters without needing to reboot
-- Verify that both the br_netfilter and overlay modules have been loaded by running:
-  - "```lsmod | grep br_netfilter```"
-  - "```lsmod | grep overlay```"
--  Verify that the following variables are set to ```1``` by running "```sysctl net.bridge.bridge-nf-call-iptables net.bridge.bridge-nf-call-ip6tables net.ipv4.ip_forward```"
-   -  net.bridge.bridge-nf-call-iptables
-   -  net.bridge.bridge-nf-call-ip6tables
-   -  net.ipv4.ip_forward
--
-## 6) Ensuring ```cgroupv2``` Is Enabled
-- kubernetes v1.28 defaults to using ```systemd``` as the ```cgroup``` driver
-  - With this knowledge, we're going to take advantage of ```cgroupv2``` instead of either ```systemd``` or ```cgroupfs``` since Debian 12 also supports and defaults to ```cgroupv2```
-    - The reason for this is because ```cgroupv2``` requires the ```systemd``` driver anyways and is objectively better
-- To double check and ensure that ```cgroupv2``` is enabled on Debian 12, run "```stat -fc %T /sys/fs/cgroup/```" which should result in ```cgroup2fs```
-  - If for whatever reason, the result isn't ```cgroup2fs``` (for example, the result would be ```tmpfs``` for ```cgroupfs```):
-    - Run "```sudo nano /etc/default/grub```"
-    - Add the following line under ```GRUB_CMDLINE_LINUX```:  "```systemd.unified_cgroup_hierarchy=1```"
-    - Run "```sudo update-grub```"
-    - Run "```reboot``` to apply the setting change
-
-<br>
-
-## 7) Installing The ```containerd``` Runtime
-- We are going to be using the latest version of ```containerd``` (v1.7.5 as of writing)
-  - Release versions and the next two steps are found over at [containerd.io/downloads](https://containerd.io/downloads/)
-- Run "```sudo wget https://github.com/containerd/containerd/releases/download/v1.7.5/containerd-1.7.5-linux-amd64.tar.gz```"
-- Run "```sudo tar Cxzf /usr/local/ containerd-1.7.5-linux-amd64.tar.gz```
-- Now we need to download the ```systemd``` service for ```containerd``` as we are using ```systemd``` driver
-  - Run "```sudo wget -P /usr/local.lib/system/containerd.service https://raw.githubusercontent.com/containerd/containerd/main/containerd.service```"
-  - Run "```sudo systemctl daemon-reload```"
-  - Run "```sudo systemctl enable --now containerd```
-- Now we need to download ```runc```
-  - Run "```sudo wget -P /usr/local/sbin/runc -m 755 https://github.com/opencontainers/runc/releases/```"
-  - Run "```sudo add-apt-repository "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/debian $(lsb_release -cs) stable"```"
-    - Hit ```Enter``` when prompted
-  -
-
-
-- Run "```curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/debian.gpg```"
-- Run "```sudo add-apt-repository "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/debian $(lsb_release -cs) stable"```"
-- Run "```sudo apt update```"
-- Run "```sudo apt install -y containerd.io```
-
-
-
-- If the directory doesn't already exist yet, run "```sudo mkdir -p /etc/containerd```"
-- Now run "```containerd config default | sudo tee /etc/containerd/config.toml```"
-- Since we are using the ```cgroupv2``` option, we need to make sure ```containerd``` is also using the ```systemd``` driver
-  - Run "```sudo nano /etc/containerd/config.toml```"
-  - Locate And Set: (Line 137)<br>"```[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]```<br>```...```<br>```[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]```<br>```SystemdCgroup = true```"
-- Run "```sudo systemctl restart containerd```"
-- Run "```sudo systemctl enable containerd```"
-- To verify that ```containerd``` is now running, run "```systemctl status containerd```"
-
-<br>
-
-## 8) Installing And Configuring ```kubeadm```, ```kubelet```, and ```kubectl```
-- [placeholder]
-- To download the public signing key, run "```curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg```"
-- To add the repository, run "```echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list```"
-- Now, we should update the package index and install kubelet, kubeadm, and kubectl. The hold command is used to pin their versions.
-  - Run "```sudo apt-get update```"
-  - Run "```sudo apt-get install -y kubelet kubeadm kubectl```"
-  - Run "```sudo apt-mark hold kubelet kubeadm kubectl```"
-- To verify the installation of ```kubeadm``` and ```kubectl```, run "```kubectl version --client && kubeadm version```"
-
-
-- We also need to ensure that the ```KubeletConfiguration``` is using the ```systemd``` driver for ```cgroupv2``` to work
-  - Run "```sudo nano /var/lib/kubelet/config.yaml```"
-  - Locate and set:<br>"```kind: KubeletConfiguration```<br>```apiVersion: kubelet.config.k8s.io/v1beta1```<br>```cgroupDriver: "systemd"```"
-    - NOTE: As of kubernetes v1.21, ```systemd``` should be the default value that is set here
-
-<br>
+### And That's It! The Highly Available Multi-Master Kubernetes Cluster Is Now Set Up With A Redundant Load Balancer In Front Of The Cluster!
