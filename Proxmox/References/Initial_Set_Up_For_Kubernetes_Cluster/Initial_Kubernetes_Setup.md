@@ -1,10 +1,10 @@
 
 # References Used
-- [computingforgeeks.com](https://computingforgeeks.com/install-kubernetes-cluster-on-debian-12-bookworm/?expand_article=1)
-- [kubernetes.io](https://kubernetes.io/docs/)
-- [docs.tigera.io](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements)
-- [```containerd``` Getting Started](https://github.com/containerd/containerd/blob/main/docs/getting-started.md)
-- [server-world.info](https://www.server-world.info/en/note?os=Debian_12&p=kubernetes&f=1)
+- [github.com/kubernetes - Load Balancing Options](https://github.com/kubernetes/kubeadm/blob/main/docs/ha-considerations.md#options-for-software-load-balancing)
+- [kubernetes.io - Load Balancer Setup](https://www.kubesphere.io/docs/v3.3/installing-on-linux/high-availability-configurations/set-up-ha-cluster-using-keepalived-haproxy/)
+- [kubernetes.io - HA Cluster Setup](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/high-availability/)
+- [docs.tigera.io - For Ports Used By Calico](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements)
+- [server-world.info - For Individual Node Setup](https://www.server-world.info/en/note?os=Debian_12&p=kubernetes&f=4)
 
 ____________________________________________________________________
 
