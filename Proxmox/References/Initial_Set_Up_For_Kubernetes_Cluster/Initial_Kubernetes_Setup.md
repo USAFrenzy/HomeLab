@@ -4,7 +4,7 @@
 - [kubesphere.io - Load Balancer Setup](https://www.kubesphere.io/docs/v3.3/installing-on-linux/high-availability-configurations/set-up-ha-cluster-using-keepalived-haproxy/)
 - [kubernetes.io - HA Cluster Setup](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/high-availability/)
 - [docs.tigera.io - For Ports Used By Calico](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements)
-- [server-world.info - For Individual Node Setup](https://www.server-world.info/en/note?os=Debian_12&p=kubernetes&f=4)
+- [server-world.info - For Individual Node Setup](https://www.server-world.info/en/note?os=Debian_12&p=kubernetes&f=1)
 
 ____________________________________________________________________
 
