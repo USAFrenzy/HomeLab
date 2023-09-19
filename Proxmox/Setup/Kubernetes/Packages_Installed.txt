@@ -14,10 +14,11 @@ NOTE: All nodes are utilizing cgroupv2 via systemd driver
 - containerd
 
 -----------------------------------------------------------
-                   master-node specific 
+                   master-node specific
 -----------------------------------------------------------
 - ntp
 - git
+- sealed-secrets-v0.24.0 (working on it)
 - helm
   - stable  (https://charts.helm.sh/stable)
   - bitnami (https://charts.bitnami.com/bitnami)
@@ -33,4 +34,3 @@ NOTE: All nodes are utilizing cgroupv2 via systemd driver
 -----------------------------------------------------------
 - haproxy
 - keepalived
-
