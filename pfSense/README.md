@@ -2,12 +2,14 @@
 
 
   - Set up OpenVPN server to connect to remotely
-  - Setup LAN network with /27
+  - Setup LAN network with /26
   - Static reservations for:
     - TrueNas Scale
     - TrueNas IPMI
     - Proxmox
     - Proxmox IPMI
     - Desktop
-    - Kubernetes Master VM Node
+    - Load Balancer Nodes
+    - Load Balancer Virtual IP
+    - Kubernetes Master VM Nodes
     - Kubernetes Worker VM Nodes
