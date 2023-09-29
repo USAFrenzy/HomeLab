@@ -80,8 +80,8 @@ _____________________________
   - To view the imported image, run "```pvesm list <the_chosen_storage_pool>```"
     - If using local or NFS storage, the image should be imported in ```qcow2``` format
       - The new extension is needed for this to work specifically with live snapshots
-      - To do this, run "```qm importdisk <template_vm_id> /tmp/<chosen_name> local --format qcow2```" 
-        - This is only neccessary for formats that aren't already in qcow2 format (debian 12 offers cloud images with the qcow2 format already for instance)
+      - To do this, run "```qm importdisk <template_vm_id> /tmp/<chosen_name> local --format qcow2```"
+        - This is only necessary for formats that aren't already in qcow2 format (debian 12 offers cloud images with the qcow2 format already for instance)
 
 #### 2) Adding The Disk For The VM To Use ####
 - Navigate back to the ```Hardware``` tab and where the new disk is, select it and click edit to add the ```CloudInit Drive``` created from step 1 to the VM
@@ -121,11 +121,11 @@ _____________________________
 
 #### 5b) Recommended step for Debian 12 ####
 - As I plan on using this for Debian 12, on their site they recommend adding the following line to ```/etc/apt/sources.list``` before running "```apt-get update && apt-get upgrade```":
-  - "```deb http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware```" 
+  - "```deb http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware```"
 
 #### 5c) Console Into The VM ####
 - Once the console appears, let the VM boot fully and then login
-- Run eiether "```sudo apt upgrade && sudo apt update -y```" or "```sudo apt-get upgrade && sudo apt-get update -y```" depending on the distro choice
+- Run either "```sudo apt upgrade && sudo apt update -y```" or "```sudo apt-get upgrade && sudo apt-get update -y```" depending on the distro choice
 
 #### 6) Enabling qemu-guest-agent ####
 - If the ```Qemu Agent``` wasn't selected from step 3 of part 1 or if the ```qemu-guest-agent``` hasn't been installed:
@@ -162,7 +162,7 @@ After removing the ssh host key files, we also need to ensure the ```machine id`
 #### 12) Optional Steps After The Template Has Been Made ####
 - When cloning the template into a VM, prefer to use ```full clone``` as this copies the entire template and not a differential copy
 - When firing up VMs made from this template, they *may* have the same name due to what was set in the template. If happens to be the case:
-  - To ammend this, run "```sudo nano /etc/hostname```" and rename the default name to whatever is desired
+  - To amend this, run "```sudo nano /etc/hostname```" and rename the default name to whatever is desired
   - Then run "```sudo nano /etc/hosts```" and rename the default name used to whatever was used in the previous step
   - Then reboot the VM
 _____________________________

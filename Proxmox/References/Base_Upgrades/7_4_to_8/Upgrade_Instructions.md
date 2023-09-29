@@ -22,9 +22,9 @@
   - Run "```pve7to8 --full```" in the web gui shell
     - Correct any warnings before proceeding
 - Using ttek's script again, run "```bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/pve8-upgrade.sh)"```"
-  - Keysmash enter and reboot when prompted
+  - Key smash enter and reboot when prompted
 - Log back in and verify that the node summary now states version "```8.0.x```" where "```x```" is whatever is the current minor release version.
-- Mostly unneccessary for this use case of this install-then-upgrade approach, but afterwards, a clean-up script can be run to check for any orphaned kernel images and remove them:
+- Mostly unnecessary for this use case of this install-then-upgrade approach, but afterwards, a clean-up script can be run to check for any orphaned kernel images and remove them:
   - Run "```bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/kernel-clean.sh)"```"
 
 --------------------------

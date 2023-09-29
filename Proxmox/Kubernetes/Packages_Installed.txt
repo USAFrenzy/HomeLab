@@ -17,9 +17,9 @@ NOTE: All nodes are utilizing cgroupv2 via systemd driver
                    master-node specific
 -----------------------------------------------------------
 - ntp (nuked OG cluster - need to reinstall)
-- git (nuked OG cluster - need to reinstall)
+- git
 - sealed-secrets-v0.24.0 (working on it)
-- helm (nuked OG cluster - need to reinstall)
+- helm
   - stable  (https://charts.helm.sh/stable) (nuked OG cluster - need to reinstall)
   - bitnami (https://charts.bitnami.com/bitnami) (nuked OG cluster - need to reinstall)
   - rancher (https://releases.rancher.com/server-charts/stable) (nuked OG cluster - need to reinstall)

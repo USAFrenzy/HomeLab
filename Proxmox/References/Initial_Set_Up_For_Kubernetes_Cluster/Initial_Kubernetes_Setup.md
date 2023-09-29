@@ -95,7 +95,7 @@ ____________________________________________________________________
   - ```192.168.3.10 k8s-master-02```
   - ```192.168.3.11 k8s-master-03```
   - Therefore, the ```hosts``` file of each and every node will also include those entries
-  - This is neccessary to allow the cluster to resolve host names and addresses
+  - This is necessary to allow the cluster to resolve host names and addresses
 - Next, since this lab's setup uses ```cloud-init```, we need to modify another file to keep the cloud config from overwriting these additions
 - Run "```nano /etc/cloud/cloud.cfg```"
   - Comment out "```update_etc_hosts```"
@@ -196,14 +196,14 @@ ____________________________________________________________________
     - The certs are usually found under ```/etc/kubernetes/pki/```
     - Do this for each ```*ca.pem``` file for each master node in the cluster
   - Run the command that was generated for you in step 11 for the worker nodes
-    - It should look something like: "```kubeadm join <virtual_IP_address_of_load_balancer>:6443 --token <your_genereated_token> --discovery-token-ca-cert-hash sha256:<your_generated_hash> --control-plane --certificate-key <cert_key_hash>```"
+    - It should look something like: "```kubeadm join <virtual_IP_address_of_load_balancer>:6443 --token <your_generated_token> --discovery-token-ca-cert-hash sha256:<your_generated_hash> --control-plane --certificate-key <cert_key_hash>```"
   - Run "```kubectl get nodes```" and wait until ```STATUS``` reads ```Ready``` for all nodes
     - If a master node is stuck, try restarting the ```kubectl``` and ```containerd``` services.
     - If that still doesn't work, disable ```apparmor``` and restart the ```kubectl``` and ```containerd``` services
 <br>
 
 ## 13) Joining The Worker Nodes
-- Run "```kubeadm join <endpoint_used_in_init_cmd>:6443 --token <your_genereated_token> --discovery-token-ca-cert-hash sha256:<your_generated_hash>```
+- Run "```kubeadm join <endpoint_used_in_init_cmd>:6443 --token <your_generated_token> --discovery-token-ca-cert-hash sha256:<your_generated_hash>```
 - Run "```kubectl get nodes```" and wait until ```STATUS``` reads ```Ready``` for all nodes
   - If a worker node is stuck, try restarting the ```kubectl``` and ```containerd``` services.
   - If that still doesn't work, disable ```apparmor``` and restart the ```kubectl``` and ```containerd``` services
