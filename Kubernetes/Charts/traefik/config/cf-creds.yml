@@ -5,8 +5,10 @@ metadata:
   namespace: traefik
 type: Opaque
 stringData:
- ########################################################################################################
- #    NOTE TO SELF: DON'T FORGET TO ADD CLOUDFLARE EMAIL AND GLOBAL API KEY HERE AND ENCRYPT FILE!!!    #
- ########################################################################################################
+ ####################################################################################
+ #    NOTE TO SELF: DON'T FORGET TO ADD VARIABLE VALUES HERE AND ENCRYPT FILE!!!    #
+ ####################################################################################
    email:  <cf_email>
    apiToken: <cf_api_key>
+   acmeEmail: <acme_email>
+   localResolver: <local_dns_resolver>
