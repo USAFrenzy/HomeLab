@@ -1,0 +1,99 @@
+
+########################### Deployment Overrides ###########################
+#
+#deployment:
+# Default Replica Count Is Set To "1" 
+#  - Special Attention Needed With TLS And Replica Count Due To Certificates
+#  - Setting Replica Count Only Works With "kind: Deployment" (The Default)
+#  replicas: 3
+
+
+# Configure Certificate Settings Here
+cerrtificateResolvers:
+#####################  HTTP Challenge With LetsEncrypt ##################### 
+#  staging:
+#    acme:
+#      storage: /ssl-certs/acme-staging.json
+#      email: mccullough.ryan123@gmail.com
+#      caServer: https://acme-staging-v02.api.letsencrypt.org/directory
+#      httpChallenge:
+#        entrypoint:
+#          web:
+#  production:
+#    acme:
+#      storage: /ssl-certs/acme-production.json
+#      email: mccullough.ryan123@gmail.com
+#      caServer: https://acme-v02.api.letsencrypt.org/directory
+#      httpChallenge:
+#        entrypoint:
+#          web:
+####################### DNS Challenge With Cloudflare #######################
+  cloudflare:
+    acme:
+      email: mccullough.ryan123@gmail.com
+      storage: /ssl-certs/acme-cloudflare.json
+      dnsChallenge:
+        provider: cloudflare
+        resolvers:
+          - "192.168.3.1:53"
+          - "1.1.1.1:53"
+
+##################### Configure Logging Settings Here #####################
+logs:
+  general:
+    level: ERROR
+
+##################### Configure Entrypoint Ports Here #####################
+ports:
+  web:
+    address: ":80"
+    # (Optional) Permanent Redirect To HTTPS
+    redirectTo: websecure
+  websecure:
+    address: ":443"
+# Enable TLS Via Cloudflare As The Certificate Resolver Defined Above
+    tls:
+      enabled: true
+      certResolver: cloudflare
+
+##################### Configure Environment Variables #####################
+env:
+# DNS Challenge Credentials
+   - name: CF_API_EMAIL
+     valueFrom:
+       secretKeyRef:
+         key: email
+         name: cf-creds
+   - name: CF_DNS_API_TOKEN
+     valueFrom:
+       secretKeyRef:
+         key: apiToken
+         name: cf-creds
+
+############################ Enable Dashboard ############################
+ingressRoute:
+  dashboard:
+    enabled: true
+
+########################### Persistent Storage ###########################
+persistence:
+  enabled: true
+  name: ssl-certs
+  size: 1Gi
+  path: /ssl-certs
+
+# The "volume-permissions" Init Container Is Required If Permission Issues Occur.
+# Related Issue: https://github.com/containous/traefik/issues/6972
+deployment:
+  initContainers:
+    - name: volume-permissions
+      image: busybox:1.31.1
+      command: ["sh", "-c", "chmod -Rv 660 /ssl-certs/*"]
+      volumeMounts:
+        - name: ssl-certs
+          mountPath: /ssl-certs
+
+############ Set Traefik As The Default Ingress Controller ##############
+ingressClass:
+  enabled: true
+  isDefaultClass: true

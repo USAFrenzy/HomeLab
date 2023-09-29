@@ -16,8 +16,7 @@ NOTE: All nodes are utilizing cgroupv2 via systemd driver
 -----------------------------------------------------------
                    master-node specific
 -----------------------------------------------------------
-- rsync
-- ntp
+- ntp (nuked OG cluster - need to reinstall)
 - git
 - sealed-secrets-v0.24.0 (working on it)
 - helm
