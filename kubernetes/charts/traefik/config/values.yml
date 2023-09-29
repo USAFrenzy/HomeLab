@@ -93,7 +93,7 @@ deployment:
   replicas: null
 #
 # Configure Initial Resources (Default CPU: 100m, Default Memory: 50Mi)
-# These Settings Require The Metric Server To Be Up And Running (Currently It Isn't)
+# These Settings Require The Metric Server To Be Up And Running
 #
 resources:
   requests:
