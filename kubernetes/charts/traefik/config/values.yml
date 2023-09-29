@@ -90,30 +90,30 @@ deployment:
 #  - Special Attention Needed With TLS And Replica Count Due To Certificates
 #  - Setting Replica Count Only Works With "kind: Deployment" (The Default)
 #  - For Horizontal Scaling To Work, 'replicas' needs to be set to 'null'
-  replicas: 1
+  replicas: null
 #
 # Configure Initial Resources (Default CPU: 100m, Default Memory: 50Mi)
 # These Settings Require The Metric Server To Be Up And Running (Currently It Isn't)
 #
-#resources:
-#  requests:
-#    cpu: "300m"
-#    memory: "100Mi"
-#  limits:
-#    cpu: "1000m"
-#    memory: "500Mi"
-#  # Configure Horizontal Pod Autoscaling And Which Resource To Monitor
-#  autoscaling:
-#    enabled: true
-#    maxReplicas: 3
-#    metrics:
-#    - type: Resource
-#      resource:
-#        name: cpu
-#        target:
-#          type: Utilization
-#          averageUtilization: 80
-#
+resources:
+  requests:
+    cpu: "300m"
+    memory: "100Mi"
+  limits:
+    cpu: "1000m"
+    memory: "500Mi"
+  # Configure Horizontal Pod Autoscaling And Which Resource To Monitor
+  autoscaling:
+    enabled: true
+    maxReplicas: 3
+    metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+
 # The "volume-permissions" Init Container Is Required If Permission Issues Occur.
 # Related Issue: https://github.com/containous/traefik/issues/6972
   initContainers:
