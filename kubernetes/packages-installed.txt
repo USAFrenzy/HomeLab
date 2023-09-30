@@ -16,9 +16,10 @@ NOTE: All nodes are utilizing cgroupv2 via systemd driver
 -----------------------------------------------------------
                    master-node specific
 -----------------------------------------------------------
-- ntp (nuked OG cluster - need to reinstall)
+- ntp
 - git
-- sealed-secrets-v0.24.0 (working on it)
+- sealed-secrets-v0.24.0 operator installed on cluster via 'controller.yaml' file
+  - kubeseal cli component installed via 'kubernetes/scripts/utils/get-sealed-secrets.sh'
 - helm
   - stable  (https://charts.helm.sh/stable) (nuked OG cluster - need to reinstall)
   - bitnami (https://charts.bitnami.com/bitnami) (nuked OG cluster - need to reinstall)
