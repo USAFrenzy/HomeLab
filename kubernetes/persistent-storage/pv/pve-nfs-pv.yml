@@ -1,0 +1,16 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: pve-nfs
+volumeBindingMode: WaitForFirstConsumer
+spec:
+  capacity:
+    storage: 450Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy:
+    Retain
+  nfs:
+    server: pve-nfs-server.homelab.lan
+    path: /exports
+    readOnly: false
