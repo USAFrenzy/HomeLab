@@ -1,0 +1,14 @@
+--------------------------------------------------------------------------------
+                            Current Topology
+--------------------------------------------------------------------------------
+1) Two Load Balancers Clustered Running 'keepalived' and 'HAProxy'
+   - Utilizing Virtual IP Failover For Load Balancers
+   - Utilizing Round Robin Load Balancing For Master And Worker Nodes
+2) Three Master Nodes Pointing To The Virtual IP As The Control Plane
+3) Five Worker Nodes Pointing To The Virtual IP
+
+--------------------------------------------------------------------------------
+                               Cluster-Stuff
+--------------------------------------------------------------------------------
+- control plane endpoint: k8s-load-balancer.homelab.lan
+- pod network cidr: 172.18.0.0/16
