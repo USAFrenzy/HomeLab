@@ -11,13 +11,13 @@ spec:
   ports:
     - name: http
       protocol: TCP
-      port: 80
-      targetPort: 35001
+      port: 8080
+      targetPort: traefik
     - name: https
       protocol: TCP
-      port: 443
-      targetPort: 35002
+      port: 8443
+      targetPort: traefik
     - name: admin
       protocol: TCP
-      port: 9000
-      targetPort: 35003
+      port: 9001
+      targetPort: traefik

@@ -39,11 +39,11 @@ spec:
 #       Explicitly Stating Both Here Though In Case HTTP/3 Is Enabled Later.
     ports:
       web:
-        address: ":80"
+        address: ":8080"
         # (Optional) Permanent Redirect To HTTPS
         redirectTo: websecure
       websecure:
-        address: ":443"
+        address: ":8443"
 # Enable TLS Via Cloudflare As The Certificate Resolver Defined Above
         tls:
           enabled: true
