@@ -1,5 +1,4 @@
 spec:
-
   # Configure Additional Volumes Here
   volumes:
     - name: ssl-certs
@@ -11,8 +10,8 @@ spec:
     additionalArguments:
     ####################### DNS Challenge With Cloudflare #######################
       - --entrypoints.websecure.http.tls.certresolver=cloudflare
-      - --entrypoints.websecure.http.tls.domains[0].main=rc-server.com
-      - --entrypoints.websecure.http.tls.domains[0].sans=*.rc-server.com
+      - --entrypoints.websecure.http.tls.domains[0].main=$(CF_MAIN_DOMAIN)
+      - --entrypoints.websecure.http.tls.domains[0].sans=$(CF_SANS_DOMAIN)
       - --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
       - --certificatesresolvers.cloudflare.acme.email=$(CF_ACME_EMAIL)
       - --certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1,$(CF_LOCAL_RESOLVER)
@@ -71,6 +70,16 @@ spec:
          valueFrom:
            secretKeyRef:
              key: localResolver
+             name: cf-creds
+       - name: CF_MAIN_DOMAIN
+         valueFrom:
+           secretKeyRef:
+             key: cfDomainMain
+             name: cf-creds
+       - name: CF_SANS_DOMAIN
+         valueFrom:
+           secretKeyRef:
+             key: cfDomainSANS
              name: cf-creds
 ############################# Disable Dashboard #############################
     ingressRoute:

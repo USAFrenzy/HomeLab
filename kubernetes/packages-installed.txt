@@ -18,6 +18,8 @@ NOTE: All nodes are utilizing cgroupv2 via systemd driver
 -----------------------------------------------------------
 - ntp
 - git
+- openssl
+- apache2-utils
 - sealed-secrets-v0.24.0 operator installed on cluster via 'controller.yaml' file
   - kubeseal cli component installed via 'kubernetes/scripts/utils/get-sealed-secrets.sh'
 - helm

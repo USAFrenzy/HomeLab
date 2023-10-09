@@ -1,3 +1,4 @@
+---
 apiversion: v1
 Kind: Secret
 metadata:
