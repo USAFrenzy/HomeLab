@@ -21,23 +21,23 @@ ports:
   - name: http
     protocol: TCP
     port: 8080
-    nodePort: 38080
     targetPort: 8080
+    nodePort: 38080
   - name: https
     protocol: TCP
     port: 8443
-    nodePort: 38443
     targetPort: 8080
+    nodePort: 38443
   - name: metrics
     protocol: TCP
     port: 9100
-    nodePort: 39100
     targetPort: 9100
+    nodePort: 39100
   - name: admin
     protocol: TCP
     port: 9001
-    nodePort: 39001
     targetPort: 9001
+    nodePort: 39001
 # -- Additional entries here will be added to the service spec.
 # -- Cannot contain type, selector or ports entries.
 spec:

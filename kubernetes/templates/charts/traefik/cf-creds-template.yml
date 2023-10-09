@@ -11,6 +11,5 @@ stringData:
    email:  <cf_email>
    apiToken: <cf_api_key>
    acmeEmail: <acme_email>
-   localResolver: <local_dns_resolver>
    cfDomainMain: <main domain>
    cfDomainSANS: <sub_domains_or_wildcard_domain>
