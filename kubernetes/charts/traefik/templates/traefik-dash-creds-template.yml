@@ -1,0 +1,9 @@
+apiversion: v1
+Kind: Secret
+metadata:
+  name: traefik-dash-creds
+  namespace: traefik
+type: kubernetes.io/basic-auth
+stringData:
+  username: <user>
+  password: <password>
