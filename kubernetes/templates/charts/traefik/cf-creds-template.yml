@@ -9,7 +9,7 @@ stringData:
  #    NOTE TO SELF: DON'T FORGET TO ADD VARIABLE VALUES HERE AND ENCRYPT FILE!!!    #
  ####################################################################################
    email:  <cf_email>
-   apiToken: <cf_api_key>
+   apiKey: <cf_api_key>
    acmeEmail: <acme_email>
    cfDomainMain: <main domain>
    cfDomainSANS: <sub_domains_or_wildcard_domain>

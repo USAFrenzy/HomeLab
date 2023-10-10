@@ -3,49 +3,36 @@ kind: Service
 metadata:
   name: traefik
   namespace: traefik
-# -- Additional annotations applied to both TCP and UDP services (e.g. for cloud provider specific config)
-annotations: {}
-# -- Additional annotations for TCP service only
-annotationsTCP: {}
-# -- Additional annotations for UDP service only
-annotationsUDP: {}
-# -- Additional service labels (e.g. for filtering Service by custom labels)
-labels: {}
-## -- Single service is using `MixedProtocolLBService` feature gate.
-## -- When set to false, it will create two Service, one for TCP and one for UDP.
-single: true
-type: LoadBalancer
-selector:
-  app: traefik
-ports:
-  - name: http
-    protocol: TCP
-    port: 8080
-    targetPort: 8080
-    nodePort: 38080
-  - name: https
-    protocol: TCP
-    port: 8443
-    targetPort: 8080
-    nodePort: 38443
-  - name: metrics
-    protocol: TCP
-    port: 9100
-    targetPort: 9100
-    nodePort: 39100
-  - name: admin
-    protocol: TCP
-    port: 9001
-    targetPort: 9001
-    nodePort: 39001
-# -- Additional entries here will be added to the service spec.
-# -- Cannot contain type, selector or ports entries.
 spec:
+  type: LoadBalancer
+  selector:
+    app: traefik
+    namespace: traefik
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+      nodePort: 30080
+    - name: https
+      protocol: TCP
+      port: 8443
+      targetPort: 8443
+      nodePort: 30443
+    - name: metrics
+      protocol: TCP
+      port: 9100
+      targetPort: 9100
+      nodePort: 30091
+    - name: admin
+      protocol: TCP
+      port: 9001
+      targetPort: 9001
+      nodePort: 30901
   # externalTrafficPolicy: Cluster
-  # loadBalancerIP: "1.2.3.4"
   # clusterIP: "2.3.4.5"
-  loadBalancerSourceRanges:
-    loadBalancerIP: "192.168.3.10"
+  # loadBalancerSourceRanges:
+  # loadBalancerIP: 192.168.3.10
   # - 192.168.0.1/32
   # - 172.16.0.0/16
   ## -- Class of the load balancer implementation
