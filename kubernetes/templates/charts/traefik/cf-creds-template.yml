@@ -13,3 +13,5 @@ stringData:
    acmeEmail: <acme_email>
    cfDomainMain: <main domain>
    cfDomainSANS: <sub_domains_or_wildcard_domain>
+   cfCert: <path_to_cert>
+   cfCertKey: <path_to_cert_key>

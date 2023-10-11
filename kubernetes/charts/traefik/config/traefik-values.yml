@@ -11,7 +11,6 @@ image:
 
 # -- Add additional label to all resources
 commonLabels: {}
-
 #
 # Configure the deployment
 #
@@ -45,7 +44,8 @@ deployment:
   # -- Additional pod annotations (e.g. for mesh injection or prometheus scraping)
   podAnnotations: {}
   # -- Additional Pod labels (e.g. for filtering Pod by custom labels)
-  podLabels: {}
+  podLabels:
+    app: traefik
   # -- Additional containers (e.g. for metric offloading sidecars)
   additionalContainers: []
   # https://docs.datadoghq.com/developers/dogstatsd/unix_socket/?tab=host
@@ -66,11 +66,7 @@ deployment:
   # Related issue: https://github.com/traefik/traefik-helm-chart/issues/396
    - name: volume-permissions
      image: busybox:latest
-     command: [
-               "sh",
-               "-c",
-               "touch /ssl-certs/acme-cloudflare.json; touch /ssl-certs/acme-staging.json; touch /ssl-certs/acme-production.json; chmod -vR 600 /ssl-certs/*"
-              ]
+     command: ["sh","-c","touch /ssl-certs/acme-cloudflare.json; chmod -vR 600 /ssl-certs/*"]
      securityContext:
        runAsNonRoot: true
        runAsGroup: 65532
@@ -119,7 +115,7 @@ podDisruptionBudget:
 ingressClass:
   enabled: true
   isDefaultClass: true
-  # name: my-custom-class
+  name: traefik-ingress
 
 # Traefik experimental features
 experimental:
@@ -143,10 +139,9 @@ experimental:
       # annotations:
       #   cert-manager.io/issuer: letsencrypt
 
-# This is going to be disabled by default as we create an ingress file (003-traefik-ingress.yml)
 ingressRoute:
   dashboard:
-    enabled: false
+    enabled: true
   healthcheck:
     enabled: false
 
@@ -251,6 +246,7 @@ globalArguments:
 additionalArguments:
 # Enables the API Handler which is needed for the service api@internal to work (Ingress Routes such as 003-traefik-dash-ingress.yml)
   - --api=true
+  - --api.insecure=true
 ####################### DNS Challenge With Cloudflare #######################
   - --entrypoints.websecure.http.tls.certresolver=cloudflare
   - --entrypoints.websecure.http.tls.domains[0].main=$(CF_MAIN_DOMAIN)
@@ -258,18 +254,18 @@ additionalArguments:
   - --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
   - --certificatesresolvers.cloudflare.acme.email=$(CF_ACME_EMAIL)
   - --certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1
-  - --certificatesresolvers.cloudflare.acme.storage= /ssl-certs/acme-cloudflare.json
+  - --certificatesresolvers.cloudflare.acme.storage=/ssl-certs/acme-cloudflare.json
 #####################  HTTP Challenge With LetsEncrypt #####################
 # Staging
-  - --certificatesresolvers.staging.acme.email=$(CF_ACME_EMAIL)
-  - --certificatesresolvers.staging.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
-  - --certificatesresolvers.staging.acme.httpChallenge.entryPoint=web
-  - --certificatesresolvers.staging.acme.storage=/ssl-certs/acme-staging.json
+#  - --certificatesresolvers.staging.acme.email=$(CF_ACME_EMAIL)
+#  - --certificatesresolvers.staging.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
+#  - --certificatesresolvers.staging.acme.httpChallenge.entryPoint=web
+#  - --certificatesresolvers.staging.acme.storage=/ssl-certs/acme-staging.json
 # Production
-  - --certificatesresolvers.production.acme.email=$(CF_ACME_EMAIL)
-  - --certificatesresolvers.production.acme.caServer=https://acme-v02.api.letsencrypt.org/directory
-  - --certificatesresolvers.production.acme.httpChallenge.entryPoint=web
-  - --certificatesresolvers.production.acme.storage=/ssl-certs/acme-production.json
+#  - --certificatesresolvers.production.acme.email=$(CF_ACME_EMAIL)
+#  - --certificatesresolvers.production.acme.caServer=https://acme-v02.api.letsencrypt.org/directory
+#  - --certificatesresolvers.production.acme.httpChallenge.entryPoint=web
+#  - --certificatesresolvers.production.acme.storage=/ssl-certs/acme-production.json
 
 # -- Environment variables to be passed to Traefik's binary
 env:
@@ -307,6 +303,16 @@ env:
     secretKeyRef:
       key: cfDomainSANS
       name: cf-creds
+- name: CF_CERT
+  valueFrom:
+    secretKeyRef:
+      key: cfCert
+      name: cf-creds
+- name: CF_CERT_KEY
+  valueFrom:
+    secretKeyRef:
+      key: cfCertKey
+      name: cf-creds
 
 # -- Environment variables to be passed to Traefik's binary from configMaps or secrets
 envFrom: []
@@ -320,6 +326,7 @@ ports:
     port: 9001
     expose: false
     exposedPort: 9001
+    targetPort: 9001
     protocol: TCP
     nodePort: 30091
     redirectTo: websecure
@@ -327,8 +334,8 @@ ports:
    # asDefault: true
     port: 8080
     expose: true
-    exposedPort: 8080
-    targetPort: 8080
+    exposedPort: 80
+    targetPort: web
     protocol: TCP
     nodePort: 30080
     redirectTo: websecure
@@ -345,8 +352,8 @@ ports:
     # asDefault: true
     port: 8443
     expose: true
-    exposedPort: 8443
-    targetPort: 8443
+    exposedPort: 443
+    targetPort: websecure
     protocol: TCP
     nodePort: 30443
     appProtocol: https
@@ -378,7 +385,11 @@ ports:
       options: ""
       certResolver: "cloudflare"
       domains: []
-
+      certificates:
+        - certFile: /ssl-certs/$(CF_CERT)
+        - keyFile: /ssl-certs/$(CF_CERT_KEY)
+          stores:
+            - default
     # -- One can apply Middlewares on an entrypoint
     # https://doc.traefik.io/traefik/middlewares/overview/
     # https://doc.traefik.io/traefik/routing/entrypoints/#middlewares
@@ -393,11 +404,17 @@ ports:
     port: 9100
     expose: true
     exposedPort: 9100
+    targetPort: metrics
+    nodePort: 30901
     protocol: TCP
 
 tlsOptions: {}
 
-tlsStore: {}
+tlsStore:
+  default:
+    defaultCertificate:
+      certFile: /ssl-certs/$(CF_CERT)
+      keyFile: /ssl-certs/$(CF_CERT_KEY)
 
 ##############################################################################################
 #                     This section is configured in traefik-service.yml                      #
@@ -406,13 +423,38 @@ service:
   enabled: true
   single: true
   type: LoadBalancer
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: web
+      nodePort: 30080
+    - name: https
+      protocol: TCP
+      port: 8443
+      targetPort: websecure
+      nodePort: 30443
+    - name: metrics
+      protocol: TCP
+      port: 9100
+      targetPort: metrics
+      nodePort: 30901
+    - name: traefik
+      protocol: TCP
+      port: 9001
+      targetPort: traefik
+      nodePort: 30091
+  selector:
+    app: traefik
+    namespace: traefik
   annotations: {}
   annotationsTCP: {}
   annotationsUDP: {}
   labels: {}
   spec: {}
   loadBalancerSourceRanges: []
-  externalIPs: []
+  externalIPs:
+    - 192.168.3.10
 
 ##############################################################################################################
 #                               REPLICAS MUST BE SET TO 'NULL' FURTHER ABOVE                                 #

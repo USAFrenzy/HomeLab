@@ -14,5 +14,5 @@ spec:
       creationTimestamp: null
       name: traefik-dash-creds
       namespace: traefik
-    type: kubernetes.io/basic-auth
+    type: Opaque  #kubernetes.io/basic-auth
 ---
