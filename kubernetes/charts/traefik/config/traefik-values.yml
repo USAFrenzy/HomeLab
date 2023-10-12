@@ -303,17 +303,6 @@ env:
     secretKeyRef:
       key: cfDomainSANS
       name: cf-creds
-- name: CF_CERT
-  valueFrom:
-    secretKeyRef:
-      key: cfCert
-      name: cf-creds
-- name: CF_CERT_KEY
-  valueFrom:
-    secretKeyRef:
-      key: cfCertKey
-      name: cf-creds
-
 # -- Environment variables to be passed to Traefik's binary from configMaps or secrets
 envFrom: []
 # - configMapRef:
@@ -334,7 +323,7 @@ ports:
    # asDefault: true
     port: 8080
     expose: true
-    exposedPort: 80
+    exposedPort: 8080
     targetPort: web
     protocol: TCP
     nodePort: 30080
@@ -345,14 +334,15 @@ ports:
     #   insecure: false
     #
     # Enable the Proxy Protocol header parsing for the entry point
-    # proxyProtocol:
-    #   trustedIPs: []
-    #   insecure: false
+    proxyProtocol:
+      trustedIPs:
+        - 192.168.3.0/26
+      insecure: false
   websecure:
     # asDefault: true
     port: 8443
     expose: true
-    exposedPort: 443
+    exposedPort: 8443
     targetPort: websecure
     protocol: TCP
     nodePort: 30443
@@ -371,25 +361,21 @@ ports:
     #  trustedIPs: []
     #  insecure: false
     ## -- Enable the Proxy Protocol header parsing for the entry point
-    #proxyProtocol:
-    #  trustedIPs: []
-    #  insecure: false
-    ## Set TLS at the entrypoint
-    ## https://doc.traefik.io/traefik/routing/entrypoints/#tls
+    proxyProtocol:
+      trustedIPs:
+        - 192.168.3.0/26
+      insecure: false
 
 ####################################################################################################################
 #                            BELOW IS TAKEN CARE OF IN THE 'additionalArguments' FIELD                             #
 ####################################################################################################################
+    ## Set TLS at the entrypoint
+    ## https://doc.traefik.io/traefik/routing/entrypoints/#tls
     tls:
       enabled: true
       options: ""
       certResolver: "cloudflare"
       domains: []
-      certificates:
-        - certFile: /ssl-certs/$(CF_CERT)
-        - keyFile: /ssl-certs/$(CF_CERT_KEY)
-          stores:
-            - default
     # -- One can apply Middlewares on an entrypoint
     # https://doc.traefik.io/traefik/middlewares/overview/
     # https://doc.traefik.io/traefik/routing/entrypoints/#middlewares
@@ -413,8 +399,7 @@ tlsOptions: {}
 tlsStore:
   default:
     defaultCertificate:
-      certFile: /ssl-certs/$(CF_CERT)
-      keyFile: /ssl-certs/$(CF_CERT_KEY)
+      secretName: cf-tls
 
 ##############################################################################################
 #                     This section is configured in traefik-service.yml                      #

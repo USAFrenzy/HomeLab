@@ -8,10 +8,8 @@ stringData:
  ####################################################################################
  #    NOTE TO SELF: DON'T FORGET TO ADD VARIABLE VALUES HERE AND ENCRYPT FILE!!!    #
  ####################################################################################
-   email:  <cf_email>
-   apiKey: <cf_api_key>
-   acmeEmail: <acme_email>
-   cfDomainMain: <main domain>
-   cfDomainSANS: <sub_domains_or_wildcard_domain>
-   cfCert: <path_to_cert>
-   cfCertKey: <path_to_cert_key>
+  email:  <cf_email>
+  apiKey: <cf_api_key>
+  acmeEmail: <acme_email>
+  cfDomainMain: <main domain>
+  cfDomainSANS: <sub_domains_or_wildcard_domain>

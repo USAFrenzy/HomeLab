@@ -1,0 +1,10 @@
+apiversion: v1
+Kind: Secret
+metadata:
+  name: cf-tls
+  namespace: traefik
+type: kubernetes.io/tls
+data:
+# Need to encode the cert and key in base64 before encryption
+  tls.crt: <cert>
+  tls.key: <key>
