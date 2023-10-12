@@ -29,7 +29,7 @@ deployment:
   # -- Amount of time (in seconds) before Kubernetes will send the SIGKILL signal if Traefik does not shut down
   terminationGracePeriodSeconds: 60
   # -- The minimum number of seconds Traefik needs to be up and running before the DaemonSet/Deployment controller considers it available
-  minReadySeconds: 5
+  minReadySeconds: 0
   ## Override the liveness/readiness port. This is useful to integrate traefik
   ## with an external Load Balancer that performs healthchecks.
   ## Default: ports.traefik.port
@@ -115,7 +115,7 @@ podDisruptionBudget:
 ingressClass:
   enabled: true
   isDefaultClass: true
-  name: traefik-ingress
+  # name: traefik-ingress
 
 # Traefik experimental features
 experimental:
@@ -139,11 +139,43 @@ experimental:
       # annotations:
       #   cert-manager.io/issuer: letsencrypt
 
+## Create an IngressRoute for the dashboard
 ingressRoute:
   dashboard:
     enabled: true
+    # -- Additional ingressRoute annotations (e.g. for kubernetes.io/ingress.class)
+    annotations: {}
+    # -- Additional ingressRoute labels (e.g. for filtering IngressRoute by custom labels)
+    labels: {}
+    # -- The router match rule used for the dashboard ingressRoute
+    matchRule: PathPrefix(`/dashboard`) || PathPrefix(`/api`)
+    # -- Specify the allowed entrypoints to use for the dashboard ingress route, (e.g. traefik, web, websecure).
+    # By default, it's using traefik entrypoint, which is not exposed.
+    # /!\ Do not expose your dashboard without any protection over the internet /!\
+    entryPoints:
+      - web
+      - websecure
+      - traefik
+    # -- Additional ingressRoute middlewares (e.g. for authentication)
+    middlewares: []
+    # -- TLS options (e.g. secret containing certificate)
+    tls: {}
   healthcheck:
+    # -- Create an IngressRoute for the healthcheck probe
     enabled: false
+    # -- Additional ingressRoute annotations (e.g. for kubernetes.io/ingress.class)
+    annotations: {}
+    # -- Additional ingressRoute labels (e.g. for filtering IngressRoute by custom labels)
+    labels: {}
+    # -- The router match rule used for the healthcheck ingressRoute
+    matchRule: PathPrefix(`/ping`)
+    # -- Specify the allowed entrypoints to use for the healthcheck ingress route, (e.g. traefik, web, websecure).
+    # By default, it's using traefik entrypoint, which is not exposed.
+    entryPoints: ["traefik"]
+    # -- Additional ingressRoute middlewares (e.g. for authentication)
+    middlewares: []
+    # -- TLS options (e.g. secret containing certificate)
+    tls: {}
 
 updateStrategy:
   # -- Customize updateStrategy: RollingUpdate or OnDelete
@@ -313,15 +345,15 @@ envFrom: []
 ports:
   traefik:
     port: 9001
-    expose: false
+    expose: true
     exposedPort: 9001
     targetPort: 9001
     protocol: TCP
     nodePort: 30091
-    redirectTo: websecure
+    # redirectTo: websecure
   web:
    # asDefault: true
-    port: 8080
+    port: 8000
     expose: true
     exposedPort: 8080
     targetPort: web
@@ -337,13 +369,14 @@ ports:
     proxyProtocol:
       trustedIPs:
         - 192.168.3.0/26
-      insecure: false
+        - 172.18.0.0/16
+      insecure: true # Just testing with 'true' might be better to leave 'false'
   websecure:
     # asDefault: true
     port: 8443
     expose: true
     exposedPort: 8443
-    targetPort: websecure
+    targetPort: 8443
     protocol: TCP
     nodePort: 30443
     appProtocol: https
@@ -364,7 +397,8 @@ ports:
     proxyProtocol:
       trustedIPs:
         - 192.168.3.0/26
-      insecure: false
+        - 172.18.0.0/16
+      insecure: true # Just testing with 'true' might be better to leave 'false'
 
 ####################################################################################################################
 #                            BELOW IS TAKEN CARE OF IN THE 'additionalArguments' FIELD                             #
@@ -390,7 +424,7 @@ ports:
     port: 9100
     expose: true
     exposedPort: 9100
-    targetPort: metrics
+    targetPort: 9100
     nodePort: 30901
     protocol: TCP
 
@@ -412,22 +446,22 @@ service:
     - name: http
       protocol: TCP
       port: 8080
-      targetPort: web
+      targetPort: 8080
       nodePort: 30080
     - name: https
       protocol: TCP
       port: 8443
-      targetPort: websecure
+      targetPort: 8443
       nodePort: 30443
     - name: metrics
       protocol: TCP
       port: 9100
-      targetPort: metrics
+      targetPort: 9100
       nodePort: 30901
     - name: traefik
       protocol: TCP
       port: 9001
-      targetPort: traefik
+      targetPort: 9001
       nodePort: 30091
   selector:
     app: traefik
@@ -445,9 +479,9 @@ service:
 #                               REPLICAS MUST BE SET TO 'NULL' FURTHER ABOVE                                 #
 #   Disabling For Now Until A Certificate Issuer Is Deployed To Prevent Conflicts With HA And Let's Encrypt  #
 ##############################################################################################################
-#autoscaling:
+autoscaling:
 #  # -- Create HorizontalPodAutoscaler object.
-#  enabled: true
+  enabled: false
 #  minReplicas: 1
 #  maxReplicas: 5
 #  metrics:
@@ -509,13 +543,14 @@ serviceAccount:
 serviceAccountAnnotations: {}
 
 # -- The resources parameter defines CPU and memory requirements and limits for Traefik's containers.
-resources:
-  requests:
-    cpu: "500m"
-    memory: "300Mi"
-  limits:
-    cpu: "1000m"
-    memory: "600Mi"
+resources: {}
+# This will be implemented when the cert-manager is in place with auto-scaling enabled
+#  requests:
+#    cpu: "500m"
+#    memory: "300Mi"
+#  limits:
+#    cpu: "1000m"
+#    memory: "600Mi"
 
 affinity: {} # useful for hostNetwork enabled
 

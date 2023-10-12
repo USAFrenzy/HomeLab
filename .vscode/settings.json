@@ -67,5 +67,6 @@
         "VXLAN",
         "Yubi",
         "ZSTD"
-    ]
+    ],
+    "sarif-viewer.connectToGithubCodeScanning": "off"
 }
