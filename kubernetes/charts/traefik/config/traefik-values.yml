@@ -175,7 +175,9 @@ ingressRoute:
     # -- Additional ingressRoute middlewares (e.g. for authentication)
     middlewares: []
     # -- TLS options (e.g. secret containing certificate)
-    tls: {}
+    tls:
+      certResolver: cloudflare
+      secretName: cf-tls
 
 updateStrategy:
   # -- Customize updateStrategy: RollingUpdate or OnDelete
@@ -273,18 +275,18 @@ tracing: {}
 
 globalArguments:
 - "--global.checknewversion"
-- "--global.sendanonymoususage"
+# - "--global.sendanonymoususage"
 
 additionalArguments:
 # Enables the API Handler which is needed for the service api@internal to work (Ingress Routes such as 003-traefik-dash-ingress.yml)
-  - --api=true
-  - --api.insecure=true
+ # - --api=true
+ # - --api.insecure=true
 ####################### DNS Challenge With Cloudflare #######################
-  - --entrypoints.websecure.http.tls.certresolver=cloudflare
-  - --entrypoints.websecure.http.tls.domains[0].main=$(CF_MAIN_DOMAIN)
-  - --entrypoints.websecure.http.tls.domains[0].sans=$(CF_SANS_DOMAIN)
+ # - --entrypoints.websecure.http.tls.certresolver=cloudflare
+ # - --entrypoints.websecure.http.tls.domains[0].main=$(CF_MAIN_DOMAIN)
+ # - --entrypoints.websecure.http.tls.domains[0].sans=$(CF_SANS_DOMAIN)
   - --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
-  - --certificatesresolvers.cloudflare.acme.email=$(CF_ACME_EMAIL)
+  - --certificatesresolvers.cloudflare.acme.email=$(CF_API_EMAIL)
   - --certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1
   - --certificatesresolvers.cloudflare.acme.storage=/ssl-certs/acme-cloudflare.json
 #####################  HTTP Challenge With LetsEncrypt #####################
@@ -370,7 +372,7 @@ ports:
       trustedIPs:
         - 192.168.3.0/26
         - 172.18.0.0/16
-      insecure: true # Just testing with 'true' might be better to leave 'false'
+      insecure: false
   websecure:
     # asDefault: true
     port: 8443
@@ -398,7 +400,7 @@ ports:
       trustedIPs:
         - 192.168.3.0/26
         - 172.18.0.0/16
-      insecure: true # Just testing with 'true' might be better to leave 'false'
+      insecure: false
 
 ####################################################################################################################
 #                            BELOW IS TAKEN CARE OF IN THE 'additionalArguments' FIELD                             #
@@ -445,24 +447,20 @@ service:
   ports:
     - name: http
       protocol: TCP
-      port: 8080
-      targetPort: 8080
-      nodePort: 30080
+      port: 8000
+      targetPort: 30080
     - name: https
       protocol: TCP
       port: 8443
-      targetPort: 8443
-      nodePort: 30443
+      targetPort: 30443
     - name: metrics
       protocol: TCP
       port: 9100
-      targetPort: 9100
-      nodePort: 30901
+      targetPort: 30901
     - name: traefik
       protocol: TCP
       port: 9001
-      targetPort: 9001
-      nodePort: 30091
+      targetPort: 30091
   selector:
     app: traefik
     namespace: traefik

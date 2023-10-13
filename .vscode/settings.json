@@ -15,6 +15,7 @@
         "caliconodestatus",
         "caliconodestatuses",
         "certificatesresolvers",
+        "certresolver",
         "CMDLINE",
         "containerd",
         "crds",
