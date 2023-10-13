@@ -9,21 +9,26 @@ spec:
     app: traefik
     namespace: traefik
   ports:
-    - name: http
+    - name: web
       protocol: TCP
-      port: 8000
-      targetPort: 30080
-    - name: https
+      port: 8080
+      targetPort: 8080
+      nodePort: 30080
+    - name: websecure
       protocol: TCP
       port: 8443
-      targetPort: 30443
+      targetPort: 8443
+      nodePort: 30443
     - name: metrics
       protocol: TCP
       port: 9100
-      targetPort: 30901
+      targetPort: 9100
+      nodePort: 30901
     - name: traefik
       protocol: TCP
       port: 9001
-      targetPort: 30091
+      targetPort: 9001
+      nodePort: 30091
   externalIPs:
     - 192.168.3.10
+  loadBalancerSourceRanges: []

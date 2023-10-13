@@ -1,10 +1,9 @@
 ---
-apiversion: v1
-Kind: Secret
+apiVersion: v1
+kind: Secret
+type: Opaque
 metadata:
-  name: traefik-dash-creds
+  name: traefik-dash-auth
   namespace: traefik
-type: kubernetes.io/basic-auth
-stringData:
-  username: <user>
-  password: <password>
+data:
+  users: <user_and_password_base64_hash>

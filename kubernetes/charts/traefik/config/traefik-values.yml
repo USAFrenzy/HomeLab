@@ -66,7 +66,7 @@ deployment:
   # Related issue: https://github.com/traefik/traefik-helm-chart/issues/396
    - name: volume-permissions
      image: busybox:latest
-     command: ["sh","-c","touch /ssl-certs/acme-cloudflare.json; chmod -vR 600 /ssl-certs/*"]
+     command: ["sh","-c","chmod -vR 600 /ssl-certs/*"]
      securityContext:
        runAsNonRoot: true
        runAsGroup: 65532
@@ -153,8 +153,6 @@ ingressRoute:
     # By default, it's using traefik entrypoint, which is not exposed.
     # /!\ Do not expose your dashboard without any protection over the internet /!\
     entryPoints:
-      - web
-      - websecure
       - traefik
     # -- Additional ingressRoute middlewares (e.g. for authentication)
     middlewares: []
@@ -216,7 +214,7 @@ providers:
     # -- Allows IngressRoute to reference resources in namespace other than theirs
     allowCrossNamespace: false
     # -- Allows to reference ExternalName services in IngressRoute
-    allowExternalNameServices: false
+    allowExternalNameServices: true
     # -- Allows to return 503 when there is no endpoints available
     allowEmptyServices: false
     # ingressClass: traefik-internal
@@ -255,7 +253,7 @@ additionalVolumeMounts: []
 
 logs:
   general:
-    level: ERROR
+    level: INFO
   access:
     enabled: false
     filters: {}
@@ -279,8 +277,8 @@ globalArguments:
 
 additionalArguments:
 # Enables the API Handler which is needed for the service api@internal to work (Ingress Routes such as 003-traefik-dash-ingress.yml)
- # - --api=true
- # - --api.insecure=true
+  - --api=true
+  - --api.insecure=false
 ####################### DNS Challenge With Cloudflare #######################
  # - --entrypoints.websecure.http.tls.certresolver=cloudflare
  # - --entrypoints.websecure.http.tls.domains[0].main=$(CF_MAIN_DOMAIN)
@@ -322,11 +320,6 @@ env:
     secretKeyRef:
       key: apiKey
       name: cf-creds
-- name: CF_ACME_EMAIL
-  valueFrom:
-    secretKeyRef:
-      key: acmeEmail
-      name: cf-creds
 - name: CF_MAIN_DOMAIN
   valueFrom:
     secretKeyRef:
@@ -355,10 +348,10 @@ ports:
     # redirectTo: websecure
   web:
    # asDefault: true
-    port: 8000
+    port: 8080
     expose: true
     exposedPort: 8080
-    targetPort: web
+    targetPort: 8080
     protocol: TCP
     nodePort: 30080
     redirectTo: websecure
@@ -447,7 +440,7 @@ service:
   ports:
     - name: http
       protocol: TCP
-      port: 8000
+      port: 8080
       targetPort: 30080
     - name: https
       protocol: TCP

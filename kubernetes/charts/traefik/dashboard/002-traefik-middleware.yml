@@ -1,4 +1,3 @@
----
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
@@ -6,4 +5,4 @@ metadata:
   namespace: traefik
 spec:
   basicAuth:
-    secret: traefik-dash-creds
+    secret: traefik-dash-auth
