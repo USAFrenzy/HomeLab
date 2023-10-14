@@ -66,7 +66,7 @@ deployment:
   # Related issue: https://github.com/traefik/traefik-helm-chart/issues/396
    - name: volume-permissions
      image: busybox:latest
-     command: ["sh","-c","chmod -vR 600 /ssl-certs/*"]
+     command: ["sh","-c","touch /ssl-certs/acme-cloudflare.json; chmod -vR 600 /ssl-certs/*"]
      securityContext:
        runAsNonRoot: true
        runAsGroup: 65532
@@ -153,6 +153,8 @@ ingressRoute:
     # By default, it's using traefik entrypoint, which is not exposed.
     # /!\ Do not expose your dashboard without any protection over the internet /!\
     entryPoints:
+      - web
+      - websecure
       - traefik
     # -- Additional ingressRoute middlewares (e.g. for authentication)
     middlewares: []
@@ -214,7 +216,7 @@ providers:
     # -- Allows IngressRoute to reference resources in namespace other than theirs
     allowCrossNamespace: false
     # -- Allows to reference ExternalName services in IngressRoute
-    allowExternalNameServices: true
+    allowExternalNameServices: false
     # -- Allows to return 503 when there is no endpoints available
     allowEmptyServices: false
     # ingressClass: traefik-internal
@@ -272,21 +274,21 @@ metrics:
 tracing: {}
 
 globalArguments:
-- "--global.checknewversion"
-# - "--global.sendanonymoususage"
+- "--global.checknewversion=true"
+- "--global.sendanonymoususage=false"
 
 additionalArguments:
 # Enables the API Handler which is needed for the service api@internal to work (Ingress Routes such as 003-traefik-dash-ingress.yml)
-  - --api=true
-  - --api.insecure=false
+  - "--api=true"
+  - "--api.insecure=false"
 ####################### DNS Challenge With Cloudflare #######################
- # - --entrypoints.websecure.http.tls.certresolver=cloudflare
- # - --entrypoints.websecure.http.tls.domains[0].main=$(CF_MAIN_DOMAIN)
- # - --entrypoints.websecure.http.tls.domains[0].sans=$(CF_SANS_DOMAIN)
-  - --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
-  - --certificatesresolvers.cloudflare.acme.email=$(CF_API_EMAIL)
-  - --certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1
-  - --certificatesresolvers.cloudflare.acme.storage=/ssl-certs/acme-cloudflare.json
+  - "--entrypoints.websecure.http.tls.certresolver=cloudflare"
+  - "--entrypoints.websecure.http.tls.domains[0].main=$(CF_MAIN_DOMAIN)"
+  - "--entrypoints.websecure.http.tls.domains[0].sans=$(CF_SANS_DOMAIN)"
+  - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
+  - "--certificatesresolvers.cloudflare.acme.email=$(CF_API_EMAIL)"
+  - "--certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1"
+  - "--certificatesresolvers.cloudflare.acme.storage=/ssl-certs/acme-cloudflare.json"
 #####################  HTTP Challenge With LetsEncrypt #####################
 # Staging
 #  - --certificatesresolvers.staging.acme.email=$(CF_ACME_EMAIL)
@@ -345,13 +347,11 @@ ports:
     targetPort: 9001
     protocol: TCP
     nodePort: 30091
-    # redirectTo: websecure
   web:
-   # asDefault: true
     port: 8080
     expose: true
     exposedPort: 8080
-    targetPort: 8080
+    targetPort: web
     protocol: TCP
     nodePort: 30080
     redirectTo: websecure
@@ -438,22 +438,26 @@ service:
   single: true
   type: LoadBalancer
   ports:
-    - name: http
+    - name: web-traffic
       protocol: TCP
       port: 8080
-      targetPort: 30080
-    - name: https
+      targetPort: web
+      nodePort: 30080
+    - name: websecure-traffic
       protocol: TCP
       port: 8443
-      targetPort: 30443
-    - name: metrics
+      targetPort: websecure
+      nodePort: 30443
+    - name: metrics-traffic
       protocol: TCP
       port: 9100
-      targetPort: 30901
-    - name: traefik
+      targetPort: metrics
+      nodePort: 30901
+    - name: traefik-dashboard
       protocol: TCP
       port: 9001
-      targetPort: 30091
+      targetPort: traefik
+      nodePort: 30091
   selector:
     app: traefik
     namespace: traefik
@@ -528,7 +532,7 @@ podSecurityPolicy:
 serviceAccount:
   # If set, an existing service account is used
   # If not set, a service account is created automatically using the fullname template
-  name: ""
+  name: traefik-service-account
 
 # -- Additional serviceAccount annotations (e.g. for oidc authentication)
 serviceAccountAnnotations: {}
