@@ -66,7 +66,7 @@ deployment:
   # Related issue: https://github.com/traefik/traefik-helm-chart/issues/396
    - name: volume-permissions
      image: busybox:latest
-     command: ["sh","-c","touch /ssl-certs/acme-cloudflare.json; chmod -vR 600 /ssl-certs/*"]
+     command: ["sh","-c","chmod -vR 600 /ssl-certs/*"]
      securityContext:
        runAsNonRoot: true
        runAsGroup: 65532
@@ -142,7 +142,7 @@ experimental:
 ## Create an IngressRoute for the dashboard
 ingressRoute:
   dashboard:
-    enabled: true
+    enabled: false ##################################### [ TESTING ] #####################################
     # -- Additional ingressRoute annotations (e.g. for kubernetes.io/ingress.class)
     annotations: {}
     # -- Additional ingressRoute labels (e.g. for filtering IngressRoute by custom labels)
@@ -175,9 +175,9 @@ ingressRoute:
     # -- Additional ingressRoute middlewares (e.g. for authentication)
     middlewares: []
     # -- TLS options (e.g. secret containing certificate)
-    tls:
-      certResolver: cloudflare
-      secretName: cf-tls
+    tls: {}
+      # certResolver: cloudflare
+      # secretName: cf-tls
 
 updateStrategy:
   # -- Customize updateStrategy: RollingUpdate or OnDelete
@@ -279,16 +279,17 @@ globalArguments:
 
 additionalArguments:
 # Enables the API Handler which is needed for the service api@internal to work (Ingress Routes such as 003-traefik-dash-ingress.yml)
-  - "--api=true"
-  - "--api.insecure=false"
+#  - "--api=true"
+#  - "--api.dashboard=true"
+#  - "--api.insecure=false" ##################################### [ TESTING ] #####################################
 ####################### DNS Challenge With Cloudflare #######################
-  - "--entrypoints.websecure.http.tls.certresolver=cloudflare"
-  - "--entrypoints.websecure.http.tls.domains[0].main=$(CF_MAIN_DOMAIN)"
-  - "--entrypoints.websecure.http.tls.domains[0].sans=$(CF_SANS_DOMAIN)"
-  - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
-  - "--certificatesresolvers.cloudflare.acme.email=$(CF_API_EMAIL)"
-  - "--certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1"
-  - "--certificatesresolvers.cloudflare.acme.storage=/ssl-certs/acme-cloudflare.json"
+#  - "--entrypoints.websecure.http.tls.certresolver=cloudflare"                         ##################################### [ TESTING ] #####################################
+#  - "--entrypoints.websecure.http.tls.domains[0].main=$(CF_MAIN_DOMAIN)"               ##################################### [ TESTING ] #####################################
+#  - "--entrypoints.websecure.http.tls.domains[0].sans=$(CF_SANS_DOMAIN)"               ##################################### [ TESTING ] #####################################
+#  - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"         ##################################### [ TESTING ] #####################################
+#  - "--certificatesresolvers.cloudflare.acme.email=$(CF_API_EMAIL)"                    ##################################### [ TESTING ] #####################################
+#  - "--certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1"           ##################################### [ TESTING ] #####################################
+#  - "--certificatesresolvers.cloudflare.acme.storage=/ssl-certs/acme-cloudflare.json"  ##################################### [ TESTING ] #####################################
 #####################  HTTP Challenge With LetsEncrypt #####################
 # Staging
 #  - --certificatesresolvers.staging.acme.email=$(CF_ACME_EMAIL)
@@ -361,11 +362,11 @@ ports:
     #   insecure: false
     #
     # Enable the Proxy Protocol header parsing for the entry point
-    proxyProtocol:
-      trustedIPs:
-        - 192.168.3.0/26
-        - 172.18.0.0/16
-      insecure: false
+    # proxyProtocol:
+    #   trustedIPs:
+    #     - 192.168.3.0/26
+    #     - 172.18.0.0/16
+    #   insecure: false
   websecure:
     # asDefault: true
     port: 8443
@@ -389,11 +390,11 @@ ports:
     #  trustedIPs: []
     #  insecure: false
     ## -- Enable the Proxy Protocol header parsing for the entry point
-    proxyProtocol:
-      trustedIPs:
-        - 192.168.3.0/26
-        - 172.18.0.0/16
-      insecure: false
+    # proxyProtocol:
+    #   trustedIPs:
+    #     - 192.168.3.0/26
+    #     - 172.18.0.0/16
+    #   insecure: false
 
 ####################################################################################################################
 #                            BELOW IS TAKEN CARE OF IN THE 'additionalArguments' FIELD                             #
@@ -401,9 +402,9 @@ ports:
     ## Set TLS at the entrypoint
     ## https://doc.traefik.io/traefik/routing/entrypoints/#tls
     tls:
-      enabled: true
+      enabled: false # false for now ##################################### [ TESTING ] #####################################
       options: ""
-      certResolver: "cloudflare"
+      certResolver: [] #cloudflare ##################################### [ TESTING ] #####################################
       domains: []
     # -- One can apply Middlewares on an entrypoint
     # https://doc.traefik.io/traefik/middlewares/overview/
@@ -425,10 +426,10 @@ ports:
 
 tlsOptions: {}
 
-tlsStore:
-  default:
-    defaultCertificate:
-      secretName: cf-tls
+tlsStore: {}
+  # default:
+  #   defaultCertificate:
+  #     secretName: cf-tls
 
 ##############################################################################################
 #                     This section is configured in traefik-service.yml                      #

@@ -3,13 +3,13 @@ kind: IngressRoute
 metadata:
   name: traefik-dashboard-internal
   namespace: traefik
-  annotations:
-    kubernetes.io/ingress.class: traefik-external-ingress
+  #annotations:
+  #  kubernetes.io/ingress.class: traefik-external-ingress
 spec:
   entryPoints:
-    - traefik
+    - websecure
   routes:
-    - match: PathPrefix(`/dashboard`) || PathPrefix(`/api`)
+    - match: Host(`traefik.homelab.lan`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
       kind: Rule
       services:
         - name: api@internal

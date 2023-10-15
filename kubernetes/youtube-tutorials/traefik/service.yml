@@ -11,12 +11,12 @@ spec:
   ports:
     - name: web-traffic
       protocol: TCP
-      port: 8080
+      port: 80
       targetPort: web
       nodePort: 30080
     - name: websecure-traffic
       protocol: TCP
-      port: 8443
+      port: 443
       targetPort: websecure
       nodePort: 30443
     - name: metrics-traffic
