@@ -11,28 +11,18 @@ spec:
   ports:
     - name: web-traffic
       protocol: TCP
-      port: 8080
+      port: 80
       targetPort: web
       nodePort: 30080
     - name: websecure-traffic
       protocol: TCP
-      port: 8443
+      port: 443
       targetPort: websecure
       nodePort: 30443
-    - name: metrics-traffic
-      protocol: TCP
-      port: 9100
-      targetPort: metrics
-      nodePort: 30901
-    - name: traefik-dashboard
-      protocol: TCP
-      port: 9001
-      targetPort: traefik
-      nodePort: 30091
+    # - name: metrics-traffic
+    #   protocol: TCP
+    #   port: 9100
+    #   targetPort: metrics
+    #   nodePort: 30901
   externalIPs:
     - 192.168.3.10
-#  loadBalancerSourceRanges: []
-status:
-  loadBalancer:
-    ingress:
-    - ip: 192.168.3.10

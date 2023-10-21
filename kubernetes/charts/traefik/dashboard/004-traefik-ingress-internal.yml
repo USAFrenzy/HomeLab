@@ -1,22 +1,19 @@
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: traefik-dashboard-internal
+  name: traefik-dashboard
   namespace: traefik
-  #annotations:
-  #  kubernetes.io/ingress.class: traefik-external-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
 spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`traefik.homelab.lan`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
+    - match: Host(`traefik.homelab.lan`)
       kind: Rule
+      # middlewares:
+      #   - name: traefik-dashboard-basicauth
+      #     namespace: traefik
       services:
         - name: api@internal
           kind: TraefikService
-      middlewares:
-        - name: traefik-dashboard-basicauth
-          namespace: traefik
-  # tls:
-  #   certResolver: cloudflare
-  #   secretName: cf-tls
