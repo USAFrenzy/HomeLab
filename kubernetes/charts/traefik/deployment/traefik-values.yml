@@ -14,8 +14,6 @@ deployment:
   additionalVolumes: []
 
   initContainers:
-  # The "volume-permissions" init container is required if you run into permission issues.
-  # Related issue: https://github.com/traefik/traefik-helm-chart/issues/396
    - name: volume-permissions
      image: busybox:latest
      command: ["sh","-c","chmod -vR 600 /ssl-certs/*"]
