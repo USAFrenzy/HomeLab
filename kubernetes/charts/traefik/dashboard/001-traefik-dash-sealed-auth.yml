@@ -12,7 +12,7 @@ spec:
   template:
     metadata:
       creationTimestamp: null
-      name: traefik-test-auth
+      name: traefik-dash-auth
       namespace: traefik
     type: kubernetes.io/basic-auth
 ---

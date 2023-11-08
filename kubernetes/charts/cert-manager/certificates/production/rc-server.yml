@@ -1,0 +1,14 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: rc-server
+  namespace: default
+spec:
+  secretName: rc-server-production-tls
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  dnsNames:
+  - "*.rc-server.com"
+  - "rc-server.com"

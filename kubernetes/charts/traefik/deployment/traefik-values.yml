@@ -85,6 +85,7 @@ additionalArguments:
 #  - --certificatesresolvers.production.acme.storage=/ssl-certs/acme-production.json
 
 # DNS Challenge Credentials And ACME Email
+#env:
 # - name: CF_API_EMAIL
 #   valueFrom:
 #     secretKeyRef:
