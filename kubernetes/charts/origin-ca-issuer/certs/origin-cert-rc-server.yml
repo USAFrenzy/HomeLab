@@ -1,0 +1,16 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: rc-server-com
+  namespace: origin-ca-issuer
+spec:
+  secretName: rc-server-com-tls
+  dnsNames:
+    - rc-server.com
+    - "*.rc-server.com"
+  duration: 168h
+  renewBefore: 24h
+  issuerRef:
+    group: cert-manager.k8s.cloudflare.com
+    kind: OriginIssuer
+    name: cloudflare-origin-ca-issuer

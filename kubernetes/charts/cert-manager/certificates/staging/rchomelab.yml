@@ -1,0 +1,14 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: rchomelab
+  namespace: default
+spec:
+  secretName: rchomelab-staging-tls
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer
+  dnsNames:
+  - "*.rchomelab.com"
+  - "rchomelab.com"
