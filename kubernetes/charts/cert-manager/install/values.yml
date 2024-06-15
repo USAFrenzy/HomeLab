@@ -10,3 +10,6 @@ podDnsConfig:
   nameservers:
     - "1.1.1.1"
     - "8.8.8.8"
+
+# Namespace configuration
+namespace: cert-manager
