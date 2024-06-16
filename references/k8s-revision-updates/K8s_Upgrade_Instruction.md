@@ -22,7 +22,7 @@ To The Desired Target Version
   - ```sudo apt-cache madison kubeadm | tac```
 
 - Locate The Patch You Would Like To Update To And Use That For The Below Control Node(s) And Worker Node(s) Steps
-  - For Example, ```1.30.2``` Would Be ```1.30.2-1.11``` In This Case
+  - For Example, ```1.30.2``` Would Be ```1.30.2-1.1``` In This Case
 
 --------------------------------------------------------------------------------------------------------
 
