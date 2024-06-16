@@ -51,6 +51,17 @@
     I would have the cloud cluster take over primary responsibility automatically due to how kubernetes works and it would 
     just talk to the local or remote TrueNas servers, depending on the situation and logic applied in the script.
 
+- In the future, If I do add a true off-site cloud-based cluster, I would probably create a second cloud based cluster to 
+  then migrate the local rancher setup to that cloud instance, setup a letsencrypt cert for a SSL based domain, add some 
+  authentication, and make the cloud instance my manangement portal so that I can administer my local and cloud based 
+  clusters no matter where I am and no matter what may happen to the local machines. This would also separate out the 
+  duties of the local machines from hosting the rancher setup itself, as well as allow the aforementioned HA of services.
+  I still wouldn't have to worry about data being stored in the cloud when I have a local and an off-site data storage 
+  scheme and could then just focus on the physical security of data as well as the monitoring of data access and RBACs/ACLs.
+
+- I still need to give this some thought, but I'm pretty stoked with this idea so far as it gets me closer to ensuring my
+  homelab setup meets the good 'ol CIA Triad of IT, specifically, the availability portion anyways.
+
 - I'm sure I might be missing some points to think about here, but I do believe that this is a pretty redundant setup that
   I could then reliably deploy services for friends and family and reliably ensure that they can ditch their paid plans. 
   I also believe that this would then allow me to get back to programming and wrap my own projects in manifests to test and
