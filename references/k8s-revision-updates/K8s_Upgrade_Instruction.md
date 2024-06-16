@@ -84,8 +84,8 @@ To The Desired Target Version
 - Then Restart The ```kubelet``` Service by Running:
   - ```systemctl restart kubelet```
 
-Now Return Back To A Control Node To Bring The Current Worker Node Back Up By Running The Following, Changing ```<worker_node>``` To Whatever Node Is Currently Being Targeted:
-- ```kubectl uncordon <worker_node>```
+- Now Return Back To A Control Node To Bring The Current Worker Node Back Up By Running The Following, Changing ```<worker_node>``` To Whatever Node Is Currently Being Targeted:
+  - ```kubectl uncordon <worker_node>```
 
 - To Check And See If The Node Successfully Updated, Run:
   - ```kubectl get nodes```
