@@ -1,0 +1,31 @@
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: DATA+OMITTED
+    server: https://load-balancer.homelab.lan:7443
+  name: <k3s_cluster>
+- cluster:
+    certificate-authority-data: DATA+OMITTED
+    server: https://load-balancer.homelab.lan:6443
+  name: <k8s_cluster>
+contexts:
+- context:
+    cluster: default
+    user: default
+  name: <k3s-cluster>
+- context:
+    cluster: <k8s_cluster>
+    user: <k8s_cluster_admin>
+  name: <k8s_cluster_admin>@<k8s_cluster>
+current-context: default
+kind: Config
+preferences: {}
+users:
+- name: <k3s_cluster_admin>
+  user:
+    client-certificate-data: DATA+OMITTED
+    client-key-data: DATA+OMITTED
+- name: <k8s_cluster_admin>
+  user:
+    client-certificate-data: DATA+OMITTED
+    client-key-data: DATA+OMITTED
