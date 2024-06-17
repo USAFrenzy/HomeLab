@@ -1,0 +1,32 @@
+---------------------------------------------------------------
+
+[ Installing First k3s Server On First Master Node ]
+
+curl -sfL https://get.k3s.io | sh -s - server \
+    --tls-san=192.168.3.10 \
+    --tls-san=load-balancer.homelab.lan \
+    --token=GmeSWrgc3dPNgG \
+    --lb-server-port=8444 \
+    --https-listen-port=7443 \
+    --server=https://192.168.3.33:7443
+
+---------------------------------------------------------------
+
+[ Installing k3s Server On Subsequent Master Nodes ]
+    
+curl -sfL https://get.k3s.io | sh -s - server \
+    --tls-san=192.168.3.10 \
+    --tls-san=load-balancer.homelab.lan \
+    --token=GmeSWrgc3dPNgG \
+    --lb-server-port=8444 \
+    --https-listen-port=7443 \
+    --cluster-init
+
+---------------------------------------------------------------
+
+[ Installing k3s Agents On Worker Nodes ]
+    
+curl -sfL https://get.k3s.io | sh -s - agent \
+    --token=GmeSWrgc3dPNgG \
+    --lb-server-port=8444 \
+     --server=https://192.168.3.33:7443
