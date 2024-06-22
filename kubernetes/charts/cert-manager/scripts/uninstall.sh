@@ -1,6 +1,7 @@
 #!/bin/bash
 
 NAMESPACE="cert-manager"
+VERSION="1.15.0"
 
 echo "Uninstalling Cert Manager Helm Release..."
 helm uninstall cert-manager --namespace $NAMESPACE
@@ -14,7 +15,7 @@ kubectl delete -f ../issuers/rchomelab/letsencrypt-staging.yml
 echo "ClusterIssuers Deleted."
 
 echo "Deleting Cert Manager CRDs..."
-kubectl delete -f ../install/cert-manager_v1.13.1.crds.yaml
+kubectl delete -f ../install/cert-manager_v${VERSION}.crds.yaml
 echo "Cert Manager CRDs Deleted."
 
 echo "Deleting Namespace $NAMESPACE..."

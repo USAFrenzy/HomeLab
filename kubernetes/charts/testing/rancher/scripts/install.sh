@@ -1,9 +1,10 @@
 #!/bin/bash
 
-CERTMANANGER_VERSION=v1.15.0
-HOSTNAME=rancher.homelab.lan
-REPLICA_COUNT=3
-BOOTSTRAP_PASSWORD=1234567890
+CERTMANANGER_VERSION="v1.15.0"
+HOSTNAME="rancher.homelab.lan"
+REPLICA_COUNT="3"
+BOOTSTRAP_PASSWORD="RancherAdmin"
+WAIT_TIMEOUT="500s"
 
 echo "#############################################################################################################################"
 echo "This script is intended to be used as a testing template to install rancher and cert-manager and is not production ready."
@@ -15,6 +16,7 @@ echo "- CERTMANANGER_VERSION=${CERTMANANGER_VERSION}"
 echo "- HOSTNAME=${HOSTNAME}"
 echo "- REPLICA_COUNT=${REPLICA_COUNT}"
 echo "- BOOTSTRAP_PASSWORD=${BOOTSTRAP_PASSWORD}"
+echo "- WAIT_TIMEOUT=${WAIT_TIMEOUT}"
 echo "If you want to change the values of these variables, please edit the script file."
 echo "#############################################################################################################################"
 
@@ -33,16 +35,16 @@ helm install cert-manager jetstack/cert-manager \
   --namespace cert-manager \
   --create-namespace
 echo "Waiting for cert-manager to be ready"
-kubectl wait --for=condition=available --timeout=600s deployment/cert-manager-webhook -n cert-manager
+kubectl wait --for=condition=available --timeout=$WAIT_TIMEOUT deployment/cert-manager-webhook -n cert-manager
 echo "Cert-manager installation complete."
 
 
 echo "Installing rancher"
 helm install rancher rancher-latest/rancher \
   --namespace cattle-system \
-  --set hostname=${HOSTNAME} \
-  --set replicas=${REPLICA_COUNT} \
-  --set bootstrapPassword=${BOOTSTRAP_PASSWORD}
+  --set hostname=$HOSTNAME \
+  --set replicas=$REPLICA_COUNT \
+  --set bootstrapPassword=$BOOTSTRAP_PASSWORD
 echo "Waiting for rancher to be ready"
-kubectl wait --for=condition=available --timeout=600s deployment/rancher -n cattle-system
+kubectl wait --for=condition=available --timeout=$WAIT_TIMEOUT deployment/rancher -n cattle-system
 echo "Rancher installation complete."
