@@ -1,0 +1,19 @@
+# Pool of IP addresses that MetalLB can assign to services
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: k3s-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  - 10.243.160.1-10.243.160.63
+---
+# Advertisement of the IP address pool
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: k3s-pool-advertisement
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+  - k3s-pool
