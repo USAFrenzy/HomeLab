@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  minecraft:
+    image: itzg/minecraft-server
+    tty: true
+    stdin_open: true
+    ports:
+      - "25565:25565"
+    environment:
+      TYPE: AUTO_CURSEFORGE
+      CF_API_KEY: <CF_API_KEY>
+      # Pinning Version To All the Mods 9-0.2.61 For Game Version 1.20.1
+      CF_PAGE_URL: https://www.curseforge.com/minecraft/modpacks/all-the-mods-9/files/5458414
+      EULA: "TRUE"
+    volumes:
+      - /var/lib/docker/volumes/Minecraft_ATM9/_data:/data
+    restart: on-failure:3

@@ -86,7 +86,7 @@ ____________________________________________________________________
 
 <br>
 
-## 5) Setup Local DNS Entries On Each Host (Ran Into Several Issues When This Step Was Omitted)
+## 5) Setup Local DNS Entries On Each Host (Ran Into Several Issues When This Step Was Omitted - May Not Be Needed)
 - Run "```nano /etc/hosts/```" on each master node, worker node, and load balancer node
 - In each node's ```hosts``` file:
   - Add every other node's local DNS entry and their IP address
@@ -146,7 +146,12 @@ ____________________________________________________________________
   -  "```net.ipv4.ip_forward=1```"
   -  "```EOF```"
 - Apply the changes by running "```sysctl --system```"
-
+- Double check that the changes took effect:
+- Run ```sudo nano /etc/modules-load.d/k8s.conf``` and add the following if they don't already exist:
+  - ```overlay```
+  - ```br_netfilter```
+  -  Run ```sudo nano /etc/sysctl.conf``` and make sure ```net.ipv4.ip_forward=1``` exists and uncomment if it's commented out
+  -  If anything had to be modified within the self-checks, reboot the server
 <br>
 
 ## 8) Enabling The Modules
