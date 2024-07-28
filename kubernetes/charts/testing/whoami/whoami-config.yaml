@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whoami
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: whoami
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: whoami
+    spec:
+      containers:
+      - image: traefik/whoami
+        name: whoami
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whoami
+  annotations:
+    metallb.universe.tf/address-pool: k8s-pool
+  namespace: default
+  labels:
+    app: whoami
+spec:
+  type: LoadBalancer
+  selector:
+    app: whoami
+  ports:
+    - name: '80'
+      protocol: TCP
+      port: 80
+      nodePort: 31956
+      targetPort: 80

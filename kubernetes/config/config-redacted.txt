@@ -3,29 +3,17 @@ clusters:
 - cluster:
     certificate-authority-data: DATA+OMITTED
     server: https://load-balancer.homelab.lan:7443
-  name: <k3s_cluster>
-- cluster:
-    certificate-authority-data: DATA+OMITTED
-    server: https://load-balancer.homelab.lan:6443
-  name: <k8s_cluster>
+  name: rmccu-k8s-cluster
 contexts:
 - context:
-    cluster: default
-    user: default
-  name: <k3s-cluster>
-- context:
-    cluster: <k8s_cluster>
-    user: <k8s_cluster_admin>
-  name: <k8s_cluster_admin>@<k8s_cluster>
-current-context: default
+    cluster: rmccu-k8s-cluster
+    user: kubernetes-admin
+  name: kubernetes-admin@rmccu-k8s-cluster
+current-context: kubernetes-admin@rmccu-k8s-cluster
 kind: Config
 preferences: {}
 users:
-- name: <k3s_cluster_admin>
-  user:
-    client-certificate-data: DATA+OMITTED
-    client-key-data: DATA+OMITTED
-- name: <k8s_cluster_admin>
+- name: kubernetes-admin
   user:
     client-certificate-data: DATA+OMITTED
     client-key-data: DATA+OMITTED

@@ -86,34 +86,47 @@ ____________________________________________________________________
 
 <br>
 
-## 5) Setup Local DNS Entries On Each Host (Ran Into Several Issues When This Step Was Omitted - May Not Be Needed)
-- Run "```nano /etc/hosts/```" on each master node, worker node, and load balancer node
-- In each node's ```hosts``` file:
-  - Add every other node's local DNS entry and their IP address
-- For example, this setup uses the following for the master nodes:
-  - ```192.168.3.9  k8s-master-01```
-  - ```192.168.3.10 k8s-master-02```
-  - ```192.168.3.11 k8s-master-03```
-  - Therefore, the ```hosts``` file of each and every node will also include those entries
-  - This is necessary to allow the cluster to resolve host names and addresses
-- Next, since this lab's setup uses ```cloud-init```, we need to modify another file to keep the cloud config from overwriting these additions
-- Run "```nano /etc/cloud/cloud.cfg```"
-  - Comment out "```update_etc_hosts```"
-  - Add "```manage_etc_hosts: false```"
-  - Save and exit the file and then reboot.
+## 5) Setup Local DNS Entries
+
+#### A) If using a local DNS resolver external to the cluster
+  - Add DNS records for the hostname/IP address for each cluster node and load balancers on the resolver
+  - Make sure each node can reach that DNS resolver by pinging it from each node
+  - Use a tool similar to nslookup or use nslookup itself to check for DNS record resolution from and to nodes
+
+#### B) If you're not using an external DNS resolver of some kind and are relying on internal resolution instead:
+  - Run "```nano /etc/hosts/```" on each cluster node and load balancers
+  - In each cluster node and load balancer's ```hosts``` file add every other node's local DNS entry and their IP address
+  - Next, since this lab's setup uses ```cloud-init```, we need to modify another file to keep the cloud config from overwriting these additions
+  - Run "```nano /etc/cloud/cloud.cfg```"
+    - Comment out "```update_etc_hosts```"
+    - Add "```manage_etc_hosts: false```"
+    - Save and exit the file and then reboot.
   - Ensure the newly added host entries weren't overridden by running "```cat /etc/hosts/```"
 
-<br>
-
 ### NOTE: Step 6 Applies To All Nodes Being Configured In The Load Balancer Cluster Setup
-
-<br>
 
 ## 6) Configuring The Load Balancer Nodes (For this setup, there are two VMs acting as the load balancer nodes)
 - Install both ```keepalived``` and ```haproxy``` by running "```apt install keepalived haproxy psmisc -y```"
 - Run "```nano /etc/haproxy/haproxy.cfg```" to configure the HAProxy configuration file
-  - Refer to this [CONFIG](../High_Availability/Load_Balancers/haproxy.conf) file for ```haproxy.cfg```
+  - Refer to this [CONFIG](../../kubernetes/load-balancers/external/haproxy.conf) file for a simple working ```haproxy.cfg```
   - Set the server name to your local DNS entry for the kubernetes master nodes as well as their corresponding IP addresses
+  - Set the frontend port to the bind port you will use for the cluster's api server (default 6443) and direct traffic to the control nodes at port 6443.
+    - For example, I use port 7443 so my frontend and backend would like:
+    ```
+    frontend rmccu-k8s-cluster
+        bind *:7443
+        mode tcp
+        option tcplog
+        default_backend rmccu-k8s-cluster-control-plane
+
+    backend rmccu-k8s-cluster-control-plane
+        mode tcp
+        balance roundrobin
+        option tcp-check
+        server k8s-controller-01.homelab.lan 192.168.20.7:6443 check fall 3 rise 2
+        server k8s-controller-02.homelab.lan 192.168.20.8:6443 check fall 3 rise 2
+        server k8s-controller-03.homelab.lan 192.168.20.9:6443 check fall 3 rise 2
+    ```
   - Run "```systemctl restart haproxy```"
   - Run "```systemctl enable haproxy```"
 - Run "```nano /etc/keepalived/keepalived.conf```" to configure the ```keepalived``` configuration file
@@ -145,13 +158,13 @@ ____________________________________________________________________
   -  "```net.bridge.bridge-nf-call-ip6tables=1```"
   -  "```net.ipv4.ip_forward=1```"
   -  "```EOF```"
-- Apply the changes by running "```sysctl --system```"
+- Apply the changes by running "```sudo sysctl --system```"
 - Double check that the changes took effect:
 - Run ```sudo nano /etc/modules-load.d/k8s.conf``` and add the following if they don't already exist:
   - ```overlay```
   - ```br_netfilter```
-  -  Run ```sudo nano /etc/sysctl.conf``` and make sure ```net.ipv4.ip_forward=1``` exists and uncomment if it's commented out
-  -  If anything had to be modified within the self-checks, reboot the server
+  -  Run ```sudo nano /etc/sysctl.conf``` and make sure ```net.ipv4.ip_forward=1``` exists and uncomment it if it's commented out
+  -  If anything had to be modified within the self-checks, reboot the server or re-run ```sudo sysctl --system```
 <br>
 
 ## 8) Enabling The Modules
@@ -173,8 +186,9 @@ ____________________________________________________________________
 <br>
 
 ## 10) Installing Kubernetes (This is the portion that uses the community-owned repo now that the others have been deprecated )
-- Run "```curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg```"
-- Run "```echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list```"
+- NOTE: The ```<version>``` fields in the below lines must match, however, this is the version of kubernetes you would like to install
+  - Run "```curl -fsSL https://pkgs.k8s.io/core:/stable:/v<version>/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg```"
+  - Run "```echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v<version>/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list```"
 - Run "```sudo apt update```"
 - Run "```sudo apt install -y kubelet kubeadm kubectl```"
 - Run "```sudo apt-mark hold kubelet kubeadm kubectl```"
@@ -183,35 +197,73 @@ ____________________________________________________________________
 <br>
 
 ## 11) Configuring Control Plane (Choose One Master Node To Run These On, The Other Master Nodes Will Be Added To The Cluster With The Join Command Later)
+- Run ```sudo kubeadm config images pull --kubernetes-version=v<version>``` to pre-fetch images that the cluster needs.
+  - You can leave the ```--kubernetes-version``` field blank if you want to use the kubernetes version that coincides with kubeadm's version
 - Run "```kubeadm init --control-plane-endpoint=<your_load_balancer_IP_address> --pod-network-cidr=<your_pod_network/16> --upload-certs```"
-  - Make note of and save the tokens, hash value, and commands printed/generated for you here as they are used in the next step
+  - You can also do this step with a config file, for example, you can create a ```kubeadm-config.yaml``` file
+  -  For Example, my config looks like the following:
+      ```
+      apiVersion: kubeadm.k8s.io/v1beta3
+      kind: ClusterConfiguration
+      kubernetesVersion: 1.30.3
+      clusterName: rmccu-k8s-cluster
+      controlPlaneEndpoint: "load-balancer.homelab.lan:7443"
+      networking:
+        podSubnet: "172.18.0.0/16"
+        serviceSubnet: "10.244.0.0/16"
+      apiServer:
+        certSANs:
+          - load-balancer.homelab.lan
+          - 192.168.20.5
+        timeoutForControlPlane: "5m0s"
+      ```
+      And then run ```sudo kubeadm init --config=kubeadm-config.yaml --upload-certs```
+- There is sometimes a version mismatch with what kubeadm pulls and what is sometimes used (looking at you containerd and Pause...)
+  - In this case, locate the manifests directory, typically found under ```/etc/kubernetes/manifests```
+  - Update the image tag to reflect what should have been pulled and save the changes for the appropriate file
+  - Since these components are managed as static pods, kubelet will automatically update the pods from here
+  - To verify that the correct versions are being used now
+    - Run ```sudo ctr images list``` to check the image versions
+    - Run ```kubectl get pods -n kube-system``` to check the pods have updated to the new images
+  - However, if there's a mismatch with the containerd's version of Pause and kubeadm's version (which is most likely as containerd uses 3.6 as the time of this writing)
+    - Run ```sudo ctr image pull registry.k8s.io/pause:<version>``` to pull the correct version of ```Pause``` into ```containerd```, changing <version> to match what was listed with ```kubeadm config images pull``` or ```kubeadm config images list```
+    - Run ```sudo nano /etc/containerd/config.toml```
+      - Locate ```[plugins."io.containerd.grpc.v1.cri"]```
+      - Change the ```<version>``` in ```sandbox_image = "registry.k8s.io/pause:<version>"``` to match your image version
+    - Run ```sudo systemctl restart containerd```
+- Make note of and save the tokens, hash value, and commands printed/generated for you here as they are used in the next step
 - Run "```mkdir -p $HOME/.kube```"
 - Run "```cp -i /etc/kubernetes/admin.conf $HOME/.kube/config```"
 - Run "```chown $(id -u):$(id -g) $HOME/.kube/config```"
-- Run "```wget https://raw.githubusercontent.com/projectcalico/calico/master/manifests/calico.yaml```" (This is for the Calico networking plugin)
-- Run "```kubectl apply -f calico.yaml```"
-- Run "```kubectl get nodes```" -> Stop here until ```STATUS``` says ```Ready```
-- Run "```kubectl get pods -A```" -> Stop here until ```STATUS``` says ```Running``` for all pods
+- Run "```kubectl get nodes```" -> You should see your node pop up with A ```Not Ready``` - this is fine as the CoreDNS pods need a CNI installed before the node is marked ```Ready```
 <br>
 
 ## 12) Joining Other Master Nodes
-- We need to make sure the other master nodes have the certificates generated from the master node that was used to initiate the cluster:
-  - Copy the certificates over to the other master nodes (Make Sure You Have The Correct Permissions To Allow This, Default Permissions Are 600)
-  - Run "```scp user@currentMasterNode:/path/to/kube/certs/*ca.pem user@otherMasterNode:/path/to/keep/certs/*ca.pem```
-    - The certs are usually found under ```/etc/kubernetes/pki/```
-    - Do this for each ```*ca.pem``` file for each master node in the cluster
   - Run the command that was generated for you in step 11 for the worker nodes
-    - It should look something like: "```kubeadm join <virtual_IP_address_of_load_balancer>:6443 --token <your_generated_token> --discovery-token-ca-cert-hash sha256:<your_generated_hash> --control-plane --certificate-key <cert_key_hash>```"
-  - Run "```kubectl get nodes```" and wait until ```STATUS``` reads ```Ready``` for all nodes
-    - If a master node is stuck, try restarting the ```kubectl``` and ```containerd``` services.
-    - If that still doesn't work, disable ```apparmor``` and restart the ```kubectl``` and ```containerd``` services
+    - It should look something like: "```kubeadm join <virtual_IP_address_of_load_balancer>:<bindPort> --token <your_generated_token> --discovery-token-ca-cert-hash sha256:<your_generated_hash> --control-plane --certificate-key <cert_key_hash>```"
+  - Repeat the process for the kubeconfig by running
+     - "```mkdir -p $HOME/.kube```"
+     - "```cp -i /etc/kubernetes/admin.conf $HOME/.kube/config```"
+     - "```chown $(id -u):$(id -g) $HOME/.kube/config```"
+  - After the last node has been added, run "```kubectl get nodes```", you should now see all master nodes listed
+    - If a master node is stuck and isn't joining the cluster after some time or errors out
+      - Run ```sudo systemctl status kubectl``` or ```sudo systemctl status containerd``` to check that these are enabled and running
+      - Run ```sudo journalctl -xeu kubectl``` or ```sudo journalctl -xeu containerd``` to view the logs and see if there are any errors present
+      - Run ```sudo rm -rf /etc/kubernetes``` and ```sudo rm -rf /etc/cni/net.d``` to effectively start fresh
+      - Try restarting the ```kubectl``` and ```containerd``` services on that node
+      - Retry joining the node to the cluster
+    - If that still doesn't work:
+      - Run ```sudo rm -rf /etc/kubernetes``` and ```sudo rm -rf /etc/cni/net.d``` to effectively start fresh again
+      - Try disabling ```apparmor``` and restart the ```kubectl``` and ```containerd``` services on that node
+      - Check the logs and status of the modules again
+      - Retry joining the node to the cluster
 <br>
 
 ## 13) Joining The Worker Nodes
-- Run "```kubeadm join <endpoint_used_in_init_cmd>:6443 --token <your_generated_token> --discovery-token-ca-cert-hash sha256:<your_generated_hash>```
+- Run "```kubeadm join <endpoint_used_in_init_cmd>:<bindPort> --token <your_generated_token> --discovery-token-ca-cert-hash sha256:<your_generated_hash>```
 - Run "```kubectl get nodes```" and wait until ```STATUS``` reads ```Ready``` for all nodes
   - If a worker node is stuck, try restarting the ```kubectl``` and ```containerd``` services.
   - If that still doesn't work, disable ```apparmor``` and restart the ```kubectl``` and ```containerd``` services
 <br>
 
-### And That's It! The Highly Available Multi-Master Kubernetes Cluster Is Now Set Up With A Redundant Load Balancer In Front Of The Cluster!
+### And That's It! The Highly Available Multi-Master Kubernetes Cluster Is Now Set Up With A Redundant Load Balancer In Front Of The Cluster! Next Step Is To Install A CNI Of Your Choice. I Use Calico CNI In BGP Mode Peered With My Router And MetalLB As My Service IP Provisioner. Both Of These Setups Are Explained Under ```calico/installation.md``` And ```metallb/installation.md``` Files Respectively.

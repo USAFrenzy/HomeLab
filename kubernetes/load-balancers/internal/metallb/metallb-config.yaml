@@ -1,0 +1,85 @@
+# This is simply the virtual ip address that the external load-balanced load balancer uses
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+ name: loadbalancer-vip
+ namespace: metallb-system
+spec:
+ addresses:
+ - 192.168.20.5/32
+---
+# Pool of IP addresses that MetalLB can assign to services
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: k8s-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  - 10.243.160.5-10.243.160.30
+
+# The Below Is Taken From https://metallb.universe.tf/usage
+#
+# To request specific IP addresses, you need to add an annotation to the service definition
+# with 'metallb.universe.tf/loadBalancerIPs' key and a comma-separated list of IP addresses
+# as the value.
+# ----------------------------------------------------------------
+#                            Example:
+# ----------------------------------------------------------------
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: nginx
+#   annotations:
+#     metallb.universe.tf/loadBalancerIPs: 192.168.20.5
+# spec:
+#   ports:
+#   - port: 80
+#     targetPort: 80
+#   selector:
+#     app: nginx
+#   type: LoadBalancer
+#
+#
+# To use a shared IP, as is the case with the loadbalancer-vip pool, you need to add an annotation
+# to the service definition with 'metallb.universe.tf/allow-shared-ip' key and the value 'true' or
+# some other shared value.
+# ----------------------------------------------------------------
+#                            Example:
+# ----------------------------------------------------------------
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: nginx
+#   annotations:
+#     metallb.universe.tf/address-pool: loadbalancer-vip
+#     metallb.universe.tf/allow-shared-ip: "true"
+# spec:
+#   ports:
+#   - port: 80
+#     targetPort: 80
+#   selector:
+#     app: nginx
+#   type: LoadBalancer
+# ----------------------------------------------------------------
+#
+#
+# To request an IP address from the pool, you need to add an annotation to the service definition
+# with 'metallb.universe.tf/address-pool' key and the name of the pool.
+# ----------------------------------------------------------------
+#                            Example:
+# ----------------------------------------------------------------
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: nginx
+#   annotations:
+#     metallb.universe.tf/address-pool: k8s-pool
+# spec:
+#   ports:
+#   - port: 80
+#     targetPort: 80
+#   selector:
+#     app: nginx
+#   type: LoadBalancer
+# ----------------------------------------------------------------
