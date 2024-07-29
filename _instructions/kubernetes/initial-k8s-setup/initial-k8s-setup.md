@@ -108,7 +108,7 @@ ____________________________________________________________________
 ## 6) Configuring The Load Balancer Nodes (For this setup, there are two VMs acting as the load balancer nodes)
 - Install both ```keepalived``` and ```haproxy``` by running "```apt install keepalived haproxy psmisc -y```"
 - Run "```nano /etc/haproxy/haproxy.cfg```" to configure the HAProxy configuration file
-  - Refer to this [CONFIG](../../kubernetes/load-balancers/external/haproxy.conf) file for a simple working ```haproxy.cfg```
+  - Refer to this [haproxy.cfg](../../kubernetes/load-balancers/external/haproxy.conf) file for a simple working ```haproxy.cfg```
   - Set the server name to your local DNS entry for the kubernetes master nodes as well as their corresponding IP addresses
   - Set the frontend port to the bind port you will use for the cluster's api server (default 6443) and direct traffic to the control nodes at port 6443.
     - For example, I use port 7443 so my frontend and backend would like:
@@ -130,7 +130,7 @@ ____________________________________________________________________
   - Run "```systemctl restart haproxy```"
   - Run "```systemctl enable haproxy```"
 - Run "```nano /etc/keepalived/keepalived.conf```" to configure the ```keepalived``` configuration file
-  - Refer to this [CONFIG](../High_Availability/Load_Balancers/keepalived.conf) file for ```keepalived.conf```
+  - Refer to this [keepalived.conf](../../kubernetes/load-balancers/external/keepalived.conf) file for a simple working ```keepalived.conf```
   - NOTE: For the ```interface``` field, this is the interface ID -> normally ```eth0```
   - NOTE: For the ```unicast_src_ip``` field, that will be the IP address of the ```CURRENT``` machine the config file is being edited on
   - NOTE: For the ```unicast_peer``` field, this is the IP address of any and all other nodes being configured in the load-balancer cluster
@@ -199,9 +199,21 @@ ____________________________________________________________________
 ## 11) Configuring Control Plane (Choose One Master Node To Run These On, The Other Master Nodes Will Be Added To The Cluster With The Join Command Later)
 - Run ```sudo kubeadm config images pull --kubernetes-version=v<version>``` to pre-fetch images that the cluster needs.
   - You can leave the ```--kubernetes-version``` field blank if you want to use the kubernetes version that coincides with kubeadm's version
+- There is sometimes a version mismatch with what kubeadm pulls and what is sometimes used (looking at you containerd and Pause...)
+  - In this case, locate the manifests directory, typically found under ```/etc/kubernetes/manifests```
+  - Update the image tag to reflect what should have been pulled and save the changes for the appropriate file
+  - Since these components are managed as static pods, kubelet will automatically update the pods from here
+  - To verify that the correct versions are being used now
+    - Run ```sudo ctr images list``` to check the image versions
+    - Run ```kubectl get pods -n kube-system``` to check the pods have updated to the new images
+  - However, if there's a mismatch with the containerd's version of Pause and kubeadm's version (which is most likely as containerd uses 3.6 as the time of this writing)
+    - Run ```sudo ctr image pull registry.k8s.io/pause:<version>``` to pull the correct version of ```Pause``` into ```containerd```, changing <version> to match what was listed with ```kubeadm config images pull``` or ```kubeadm config images list```
+    - Run ```sudo nano /etc/containerd/config.toml```
+      - Locate ```[plugins."io.containerd.grpc.v1.cri"]```
+      - Change the ```<version>``` in ```sandbox_image = "registry.k8s.io/pause:<version>"``` to match your image version
+    - Run ```sudo systemctl restart containerd```
 - Run "```kubeadm init --control-plane-endpoint=<your_load_balancer_IP_address> --pod-network-cidr=<your_pod_network/16> --upload-certs```"
-  - You can also do this step with a config file, for example, you can create a ```kubeadm-config.yaml``` file
-  -  For Example, my config looks like the following:
+  - You can also do this step with a config file, for example, you can create a ```kubeadm-config.yaml``` file that looks similar to:
       ```
       apiVersion: kubeadm.k8s.io/v1beta3
       kind: ClusterConfiguration
@@ -218,19 +230,6 @@ ____________________________________________________________________
         timeoutForControlPlane: "5m0s"
       ```
       And then run ```sudo kubeadm init --config=kubeadm-config.yaml --upload-certs```
-- There is sometimes a version mismatch with what kubeadm pulls and what is sometimes used (looking at you containerd and Pause...)
-  - In this case, locate the manifests directory, typically found under ```/etc/kubernetes/manifests```
-  - Update the image tag to reflect what should have been pulled and save the changes for the appropriate file
-  - Since these components are managed as static pods, kubelet will automatically update the pods from here
-  - To verify that the correct versions are being used now
-    - Run ```sudo ctr images list``` to check the image versions
-    - Run ```kubectl get pods -n kube-system``` to check the pods have updated to the new images
-  - However, if there's a mismatch with the containerd's version of Pause and kubeadm's version (which is most likely as containerd uses 3.6 as the time of this writing)
-    - Run ```sudo ctr image pull registry.k8s.io/pause:<version>``` to pull the correct version of ```Pause``` into ```containerd```, changing <version> to match what was listed with ```kubeadm config images pull``` or ```kubeadm config images list```
-    - Run ```sudo nano /etc/containerd/config.toml```
-      - Locate ```[plugins."io.containerd.grpc.v1.cri"]```
-      - Change the ```<version>``` in ```sandbox_image = "registry.k8s.io/pause:<version>"``` to match your image version
-    - Run ```sudo systemctl restart containerd```
 - Make note of and save the tokens, hash value, and commands printed/generated for you here as they are used in the next step
 - Run "```mkdir -p $HOME/.kube```"
 - Run "```cp -i /etc/kubernetes/admin.conf $HOME/.kube/config```"
@@ -266,4 +265,4 @@ ____________________________________________________________________
   - If that still doesn't work, disable ```apparmor``` and restart the ```kubectl``` and ```containerd``` services
 <br>
 
-### And That's It! The Highly Available Multi-Master Kubernetes Cluster Is Now Set Up With A Redundant Load Balancer In Front Of The Cluster! Next Step Is To Install A CNI Of Your Choice. I Use Calico CNI In BGP Mode Peered With My Router And MetalLB As My Service IP Provisioner. Both Of These Setups Are Explained Under ```calico/installation.md``` And ```metallb/installation.md``` Files Respectively.
+### And That's It! The Highly Available Multi-Master Kubernetes Cluster Is Now Set Up With A Redundant Load Balancer In Front Of The Cluster! Next Step Is To Install A CNI Of Your Choice. I Use Calico CNI In BGP Mode Peered With My Router And MetalLB As My Service IP Provisioner. Both Of These Setups Are Explained Under [calico](../../_instructions/kubernetes/cni/calico/Installation.md) And [metallb](../../_instructions/kubernetes/load-balancer/metallb/installation.md) Files Respectively.
