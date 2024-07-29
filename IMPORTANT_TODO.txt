@@ -1,4 +1,0 @@
-- As of 17Jun24, Rancher only supports kubernetes k3s 1.28
-  - Therefore I need to nuke the cluster running k3s 1.29 (yay snapshots)
-  - Then recreate the cluster with v1.28 instead before proceeding forward
-- Lesson learned here about proper forward thinking planning...

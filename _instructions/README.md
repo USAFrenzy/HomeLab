@@ -1,0 +1,1 @@
+ This folder simply holds files for instructions that I've made to deploy any kubernetes components or home lab setup configurations that I use. 
