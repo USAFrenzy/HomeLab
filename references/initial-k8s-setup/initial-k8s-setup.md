@@ -213,8 +213,7 @@ ____________________________________________________________________
       - Change the ```<version>``` in ```sandbox_image = "registry.k8s.io/pause:<version>"``` to match your image version
     - Run ```sudo systemctl restart containerd```
 - Run "```kubeadm init --control-plane-endpoint=<your_load_balancer_IP_address> --pod-network-cidr=<your_pod_network/16> --upload-certs```"
-  - You can also do this step with a config file, for example, you can create a ```kubeadm-config.yaml``` file
-  -  For Example, my config looks like the following:
+  - You can also do this step with a config file, for example, you can create a ```kubeadm-config.yaml``` file that looks similar to:
       ```
       apiVersion: kubeadm.k8s.io/v1beta3
       kind: ClusterConfiguration
