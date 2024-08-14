@@ -16,7 +16,8 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-  - 10.243.160.5-10.243.160.30
+  - 10.243.160.0/27
+  avoidBuggyIPs: true
 
 # The Below Is Taken From https://metallb.universe.tf/usage
 #
