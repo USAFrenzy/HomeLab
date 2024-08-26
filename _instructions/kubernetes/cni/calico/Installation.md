@@ -73,16 +73,18 @@
 ### Top Of Rack Method
 - Given that I am using a pseudo-Top of Rack method, I use a global bgp peer for my router to the nodes - this peers every node in the cluster to my router and looks like:
   ```
-  apiVersion: projectcalico.org/v3
-  kind: BGPPeer
-  metadata:
-    name: router
-  spec:
-    peerIP: 192.168.20.1
-    asNumber: 65200
-    filters:
-    - deny-pod-network
-    - allow-service-network
+   apiVersion: projectcalico.org/v3
+   kind: BGPPeer
+   metadata:
+     name: router
+   spec:
+     peerIP: 10.10.10.1
+     asNumber: 65200
+     filters:
+     -  import-external-routes
+     -  export-external-service-network
+     -  deny-internal-service-network
+     -  deny-pod-network
   ```
   - Important notes:
     - For the Top of Rack method, you would typically add ```nodeSelector: rack == 'rack-designator'``` to the spec field and then label the nodes you want to use this bgp peer config with ```rack:rack-designator```. In my setup, I simply wished for the BGP routes to be advertised to my router, which uses both BGP and OSPF to establish the most efficient route paths with future expansion in mind, so I stuck with a simple global peer for now which effectively creates a full-mesh with my router instead
@@ -93,7 +95,7 @@
   ### Adding filters
   - Filters act as a method to control what routes are imported/exported
   - You can be as granular as you want to with these filters, only allowing or rejecting subsets of a network, or as broad as you want to and allow the whole subnet
-  - In my setup, I simply created two filters.
+  - In my setup, I simply created a few filters. As examples:
     - One to reject advertisement of the internal pod network and applied it to my peer config above so that my router doesn't see my pod network and only sees the service network and the cluster's network from calico. My config for that looks like:
     ```
      apiVersion: projectcalico.org/v3
@@ -119,3 +121,35 @@
         matchOperator: In
         cidr: 10.243.160.0/27 # This is the range of IP addresses that matches the IP range available to MetalLB k8s-pool
     ```
+
+<h3 style="text-align: center"> Final Step </h3>
+<h5 style="text-align: center;"> NOTE: <br> <p style="text-align: center;">In my network, I have an external load-balanced load balancer running haproxy and keepalived which receives all incoming traffic and routes it to my other machines as well as the kubernetes cluster. Because the routes essentially skip this load balancer, I have to make one minor adjustment for this to work correctly. I need to add the routes to get to the metallb network on these load balancers. To do this, we are going to install the "FRR" package on the load balancers and configure them as bgp peers to both the cluster and to the top-level router (pfSense in my case) </p></h5>
+
+- Run ```sudo apt install frr frr-pythontools```
+- Enable BGP in the ```daemons``` file
+  - ```sudo nano /etc/frr/daemons``` and change ```bgpd``` to ```yes```. Save and exit
+- Edit the ```bgpd.conf``` file by running ```sudo nano /etc/frr/bgpd.conf```
+  - Add the bgp configuration information for the router (or other peers) and calico here, save and exit.
+  - For example, mine looks like this where the configs are identical on each machine with the ```router-id``` field being changed appropriately:
+   ```
+   router bgp 65202
+    bgp router-id 192.168.20.3 # IP of the VM
+    neighbor 10.10.10.1 remote-as 65200
+    neighbor 192.168.20.7 remote-as 65201
+    neighbor 192.168.20.8 remote-as 65201
+    neighbor 192.168.20.9 remote-as 65201
+
+    address-family ipv4 unicast
+     network 192.168.20.0/26
+     neighbor 10.10.10.1 activate
+     neighbor 192.168.20.7 activate
+     neighbor 192.168.20.8 activate
+     neighbor 192.168.20.9 activate
+     maximum-paths 3 # Change this to however many paths you'd like to use for the same destination
+    exit-address-family
+   ```
+- Restart the ```frr``` service by running ```sudo restart frr```
+- Go to the top level router (could be VyOS, or any other router that supports BGP - mine is pfSense)
+  - Establish a neighbor with whatever ASN and IP was given to the load balancers - in my example, it was 65202 and the VIP of 192.168.20.5
+- To verify the sessions are established:
+  - Run ```ip route``` to view the routes on the load balancer nodes

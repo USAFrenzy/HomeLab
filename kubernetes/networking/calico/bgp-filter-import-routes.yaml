@@ -1,0 +1,21 @@
+apiVersion: projectcalico.org/v3
+kind: BGPFilter
+metadata:
+  name: import-external-routes
+spec:
+  importV4:
+  - action: Accept
+    matchOperator: In
+    cidr: 10.243.0.0/29
+    source: RemotePeers
+    interface: "*"
+  - action: Accept
+    matchOperator: In
+    cidr: 192.168.3.0/29
+    source: RemotePeers
+    interface: "*"
+  - action: Accept
+    matchOperator: In
+    cidr: 192.168.50.0/24
+    source: RemotePeers
+    interface: "*"

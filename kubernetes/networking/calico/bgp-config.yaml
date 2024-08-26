@@ -5,8 +5,8 @@ metadata:
 spec:
   logSeverityScreen: Info
   asNumber: 65201 # Set to the AS number you want to use for BGP.
-  nodeToNodeMeshEnabled: false # Disable node-to-node meshing
   serviceClusterIPs:
     - cidr: 10.244.0.0/16 # This should match the serviceSubnet in the ClusterConfiguration
   serviceLoadBalancerIPs:
     - cidr: 10.243.160.0/27 # This is the range of IP addresses that matches the IP range available to MetalLB k8s-pool
+    - cidr: 192.168.20.5/32 # This is the VIP address that matches the IP available to MetalLB loadbalancer-vip pool

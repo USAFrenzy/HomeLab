@@ -1,34 +1,13 @@
-apiVersion: projectcalico.org/v3
-kind: BGPPeer
-metadata:
-  name: loadbalancer-vip
-spec:
-  peerIP: 192.168.20.5
-  asNumber: 65200
-  filters:
-  - deny-pod-network
-  - allow-service-network
 
----
 apiVersion: projectcalico.org/v3
 kind: BGPPeer
 metadata:
-  name: loadbalancer1
+  name: router
 spec:
-  peerIP: 192.168.20.3
+  peerIP: 10.10.10.1
   asNumber: 65200
   filters:
-  - deny-pod-network
-  - allow-service-network
-
----
-apiVersion: projectcalico.org/v3
-kind: BGPPeer
-metadata:
-  name: loadbalancer2
-spec:
-  peerIP: 192.168.20.4
-  asNumber: 65200
-  filters:
-  - deny-pod-network
-  - allow-service-network
+  -  import-external-routes
+  -  export-external-service-network
+  -  deny-internal-service-network
+  -  deny-pod-network

@@ -1,0 +1,11 @@
+apiVersion: projectcalico.org/v3
+kind: BGPFilter
+metadata:
+  name: export-external-service-network
+spec:
+  exportV4:
+  - action: Accept
+    matchOperator: In
+    cidr: 10.243.160.0/27 # This is the range of IP addresses that matches the IP range available to MetalLB k8s-pool
+    source: RemotePeers
+    interface: "*"
