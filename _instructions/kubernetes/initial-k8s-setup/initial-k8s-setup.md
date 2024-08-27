@@ -108,7 +108,7 @@ ____________________________________________________________________
 ## 6) Configuring The Load Balancer Nodes (For this setup, there are two VMs acting as the load balancer nodes)
 - Install both ```keepalived``` and ```haproxy``` by running "```apt install keepalived haproxy psmisc -y```"
 - Run "```nano /etc/haproxy/haproxy.cfg```" to configure the HAProxy configuration file
-  - Refer to this [haproxy.cfg](../../../kubernetes/load-balancers/external/haproxy.conf) file for a simple working ```haproxy.cfg```
+  - Refer to this [haproxy.cfg](../../../kubernetes/load-balancers/external/haproxy.cfg) file for a simple working ```haproxy.cfg```
   - Set the server name to your local DNS entry for the kubernetes master nodes as well as their corresponding IP addresses
   - Set the frontend port to the bind port you will use for the cluster's api server (default 6443) and direct traffic to the control nodes at port 6443.
     - For example, I use port 7443 so my frontend and backend would like:
@@ -130,7 +130,7 @@ ____________________________________________________________________
   - Run "```systemctl restart haproxy```"
   - Run "```systemctl enable haproxy```"
 - Run "```nano /etc/keepalived/keepalived.conf```" to configure the ```keepalived``` configuration file
-  - Refer to this [keepalived.conf](../../../kubernetes/load-balancers/external/keepalived.conf) file for a simple working ```keepalived.conf```
+  - Refer to these [load balancer 1 keepalived config](../../../kubernetes/load-balancers/external/keepalived/lb-1-keepalived.conf) and [load balancer 2 keepalived config](../../../kubernetes/load-balancers/external/keepalived/lb-2-keepalived.conf) files for a simple working ```keepalived``` setup
   - NOTE: For the ```interface``` field, this is the interface ID -> normally ```eth0```
   - NOTE: For the ```unicast_src_ip``` field, that will be the IP address of the ```CURRENT``` machine the config file is being edited on
   - NOTE: For the ```unicast_peer``` field, this is the IP address of any and all other nodes being configured in the load-balancer cluster
