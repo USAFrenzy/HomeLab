@@ -1,6 +1,6 @@
 # Home Lab Documentation
 
-- This repo will simply host documentation for my home lab setup, such as configuration settings and any services that are hosted (on top of those individual service's versions, settings, configs, mappings, etc - obviously minus any secrets or sensitive data).
+- This repo will simply host documentation for my home lab setup, such as configuration settings and any services that are hosted (on top of those individual service's versions, settings, configs, mappings, etc - obviously minus any unencrypted secrets or sensitive data).
 <br>
 
 - This repo will also hold any guides I create for use in my home lab setup based on research done on the topics that are relevant to my setup so that I can reproduce the environment (such as Proxmox setup, Truenas Scale setup, etc... )
