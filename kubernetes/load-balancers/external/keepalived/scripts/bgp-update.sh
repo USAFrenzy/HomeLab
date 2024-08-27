@@ -19,6 +19,8 @@ PEER="10.10.10.1"
 LOCAL_AS="65202"
 REMOTE_AS="65200"
 NETWORK_VIP="$VIP/32"
+MULTI_HOP="ebgp-multihop"
+PEER_DESCRIPTION="pfSense localhost VIP"
 
 # Define functions (easier to read and maintain vs what was going on with the repeating logic previously)
 function bgp_neighbor_exists {
@@ -33,8 +35,8 @@ function write_bgp_neighbor {
     echo "Writing BGP neighbor configuration for $PEER." >> $LOG_FILE
     sudo vtysh -c "configure terminal" -c "router bgp $LOCAL_AS" \
         -c "neighbor $PEER remote-as $REMOTE_AS" \
-        -c "neighbor $PEER description pfSense localhost VIP" \
-        -c "neighbor $PEER ebgp-multihop" \
+        -c "neighbor $PEER description $PEER_DESCRIPTION" \
+        -c "neighbor $PEER '$MULTI_HOP'" \
         -c "neighbor $PEER update-source $VM_LOOPBACK" \
         >> $LOG_FILE 2>&1
     if [ $? -ne 0 ]; then
@@ -57,13 +59,16 @@ function verify_bgp_neighbor {
     neighbor_config=$(sudo vtysh -c "show running-config" | grep -A 5 "neighbor $PEER")
 
     if [[ ! $neighbor_config =~ "remote-as $REMOTE_AS" ]] || \
-       [[ ! $neighbor_config =~ "update-source $VM_LOOPBACK" ]]; then
+       [[ ! $neighbor_config =~ "update-source $VM_LOOPBACK" ]] || \
+       [[ ! $neighbor_config =~ "description $PEER_DESCRIPTION" ]] || \
+       [[ ! $neighbor_config =~ $MULTI_HOP ]]; then
         echo "BGP neighbor $PEER configuration mismatch detected." >> $LOG_FILE
         write_bgp_neighbor
     else
         echo "BGP neighbor $PEER configuration is correct." >> $LOG_FILE
     fi
 }
+
 
 function verify_bgp_network {
     if ! bgp_network_exists "$NETWORK_VIP"; then
@@ -74,6 +79,7 @@ function verify_bgp_network {
     fi
 }
 
+#
 ################################################# Actual Script Logic #################################################
 
 echo "######################################################################################" >> $LOG_FILE
