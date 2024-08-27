@@ -14,7 +14,7 @@ start_haproxy_and_update() {
     else
         echo "Error occurred while starting HAProxy." >> $LOG_FILE
     fi
-    $BGP_UPDATE_SCRIPT
+    sudo $BGP_UPDATE_SCRIPT
 }
 
 stop_haproxy_and_update() {
@@ -26,12 +26,12 @@ stop_haproxy_and_update() {
     else
         echo "Error occurred while stopping HAProxy." >> $LOG_FILE
     fi
-    $BGP_UPDATE_SCRIPT
+    sudo $BGP_UPDATE_SCRIPT
 }
 
 update_bgp_configuration() {
     echo "Updating BGP configuration." >> $LOG_FILE
-    $BGP_UPDATE_SCRIPT
+    sudo $BGP_UPDATE_SCRIPT
 }
 
 ##############################################################################
