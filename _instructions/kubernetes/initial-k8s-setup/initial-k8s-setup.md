@@ -130,7 +130,7 @@ ____________________________________________________________________
   - Run "```systemctl restart haproxy```"
   - Run "```systemctl enable haproxy```"
 - Run "```nano /etc/keepalived/keepalived.conf```" to configure the ```keepalived``` configuration file
-  - Refer to these [load balancer 1 keepalived config](../../../kubernetes/load-balancers/external/keepalived/lb-1-keepalived.conf) and [load balancer 2 keepalived config](../../../kubernetes/load-balancers/external/keepalived/lb-2-keepalived.conf) files for a simple working ```keepalived``` setup
+  - Refer to these [load balancer 1 keepalived config](../../../kubernetes/load-balancers/external/keepalived/loadbalancer01/lb-1-keepalived.conf) and [load balancer 2 keepalived config](../../../kubernetes/load-balancers/external/keepalived/loadbalancer02/lb-2-keepalived.conf) files for a simple working ```keepalived``` setup
   - NOTE: For the ```interface``` field, this is the interface ID -> normally ```eth0```
   - NOTE: For the ```unicast_src_ip``` field, that will be the IP address of the ```CURRENT``` machine the config file is being edited on
   - NOTE: For the ```unicast_peer``` field, this is the IP address of any and all other nodes being configured in the load-balancer cluster

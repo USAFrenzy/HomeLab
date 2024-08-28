@@ -1,0 +1,9 @@
+# This file is intended to be stored under "/etc/systemd/network/"
+# After copying the file to the correct destination, run:
+# "sudo systemctl restart systemd-networkd" for it to take effect
+
+[Match]
+Name=lo
+
+[Network]
+Address=192.168.20.61/32

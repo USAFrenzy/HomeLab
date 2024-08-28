@@ -19,16 +19,23 @@ PEER="10.10.10.1"
 LOCAL_AS="65202"
 REMOTE_AS="65200"
 NETWORK_VIP="$VIP/32"
-MULTI_HOP="ebgp-multihop"
 PEER_DESCRIPTION="pfSense localhost VIP"
 
 # Define functions (easier to read and maintain vs what was going on with the repeating logic previously)
 function bgp_neighbor_exists {
-    sudo vtysh -c "show ip bgp neighbors" | grep -q "Neighbor: $1"
+    if sudo vtysh -c "show ip bgp neighbors" | grep -q "$1"; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 function bgp_network_exists {
-    sudo vtysh -c "show ip bgp" | grep -q "Network: $1"
+    if sudo vtysh -c "show ip bgp" | grep -q "$1"; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 function write_bgp_neighbor {
@@ -36,7 +43,7 @@ function write_bgp_neighbor {
     sudo vtysh -c "configure terminal" -c "router bgp $LOCAL_AS" \
         -c "neighbor $PEER remote-as $REMOTE_AS" \
         -c "neighbor $PEER description $PEER_DESCRIPTION" \
-        -c "neighbor $PEER '$MULTI_HOP'" \
+        -c "neighbor $PEER ebgp-multihop" \
         -c "neighbor $PEER update-source $VM_LOOPBACK" \
         >> $LOG_FILE 2>&1
     if [ $? -ne 0 ]; then
@@ -61,7 +68,7 @@ function verify_bgp_neighbor {
     if [[ ! $neighbor_config =~ "remote-as $REMOTE_AS" ]] || \
        [[ ! $neighbor_config =~ "update-source $VM_LOOPBACK" ]] || \
        [[ ! $neighbor_config =~ "description $PEER_DESCRIPTION" ]] || \
-       [[ ! $neighbor_config =~ $MULTI_HOP ]]; then
+       [[ ! $neighbor_config =~ ebgp-multihop ]]; then
         echo "BGP neighbor $PEER configuration mismatch detected." >> $LOG_FILE
         write_bgp_neighbor
     else
@@ -82,9 +89,6 @@ function verify_bgp_network {
 #
 ################################################# Actual Script Logic #################################################
 
-echo "######################################################################################" >> $LOG_FILE
-echo "Running bgp-update.sh at $(date)" >> $LOG_FILE
-
 # Check if VIP is present
 if ip addr show | grep -q "$VIP"; then
     echo "VIP is present. Ensuring BGP configuration is active." >> $LOG_FILE
@@ -94,6 +98,7 @@ if ip addr show | grep -q "$VIP"; then
         echo "BGP neighbor $PEER not found. Adding neighbor configuration." >> $LOG_FILE
         write_bgp_neighbor
     else
+        echo "BGP neighbor $PEER found. Verifying neighbor configuration." >> $LOG_FILE
         verify_bgp_neighbor
     fi
 
@@ -102,6 +107,7 @@ if ip addr show | grep -q "$VIP"; then
         echo "BGP network $NETWORK_VIP not found. Adding network configuration." >> $LOG_FILE
         write_bgp_network
     else
+        echo "BGP network $NETWORK_VIP Found. Verifying network configuration." >> $LOG_FILE
         verify_bgp_network
     fi
 else
@@ -133,6 +139,3 @@ else
         echo "BGP network $NETWORK_VIP does not exist. No action needed." >> $LOG_FILE
     fi
 fi
-
-echo "######################################################################################" >> $LOG_FILE
-echo "" >> $LOG_FILE
