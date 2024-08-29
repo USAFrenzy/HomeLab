@@ -12,25 +12,18 @@ update_bgp_configuration() {
 
 start_haproxy_and_update() {
     if sudo systemctl start haproxy 2>> $LOG_FILE; then
-        echo "HAProxy started successfully." >> $LOG_FILE
-        update_bgp_configuration
         return 0;
     else
-        echo "Error occurred while starting HAProxy. Manually removing VIP from master node."
-        sudo ip addr del "$VIP/32" dev eth0 2>> $LOG_FILE
-        echo "Updating BGP congfig and transitioning status from master to backup..." >> $LOG_FILE
-        update_bgp_configuration
         return 1;
     fi
 }
 
 stop_haproxy_and_update() {
     if sudo systemctl stop haproxy 2>> $LOG_FILE; then
-        echo "HAProxy stopped successfully." >> $LOG_FILE
+      return 0;
     else
-        echo "Error occurred while stopping HAProxy." >> $LOG_FILE
+      return 1;
     fi
-    update_bgp_configuration
 }
 
 ##############################################################################
@@ -46,32 +39,50 @@ echo "Running chk_haproxy.sh at $(date)" >> $LOG_FILE
 # Check if the VIP is assigned to this node
 if ip addr show | grep -q "$VIP"; then
     # VIP is present, meaning we are the master according to keepalived
-    if pgrep haproxy > /dev/null; then
+    if sudo systemctl is-active --quiet haproxy; then
         # HAProxy is running, so just update the BGP configuration
-        echo "Keepalived master state detected and, as intended, haproxy is running." >> $LOG_FILE
+        echo "Keepalived master state detected and haproxy is running." >> $LOG_FILE
         update_bgp_configuration
     else
         # HAProxy is not running, so start HAProxy and then update BGP configuration
         echo "Keepalived master state detected without haproxy running. \
               Starting HAProxy and updating BGP configuration." \
               >> $LOG_FILE
-        start_haproxy_and_update
-
-        echo "######################################################################################" >> $LOG_FILE
-        echo "" >> $LOG_FILE
-        exit $?
+        if start_haproxy_and_update; then
+            echo "HAProxy started successfully." >> $LOG_FILE
+            update_bgp_configuration
+            echo "######################################################################################" >> $LOG_FILE
+            echo "" >> $LOG_FILE
+            exit 0
+        else
+            # Need to exit if HAProxy fails to start so that keepalived transitions to backup, on the next interval
+            # check, the vip will no longer be present, so then the bgp configuration will be updated. This will result
+            # in a minimum of 2 seconds to transition state, stop haproxy if it's still running, and update the bgp
+            # configuration with 'interval 1' in the keepalived configuration.
+            echo "Error occurred while starting HAProxy. Marking script as failed." >> $LOG_FILE
+            echo "######################################################################################" >> $LOG_FILE
+            echo "" >> $LOG_FILE
+            exit 1
+        fi
     fi
 else
     # VIP is not present, meaning we are not the master here
-    if pgrep haproxy > /dev/null; then
+    if sudo systemctl is-active --quiet haproxy; then
         # HAProxy is running, so stop it and update BGP configuration
         echo "Keepalived backup state detected with haproxy running. \
               Stopping HAProxy and updating BGP configuration." \
               >> $LOG_FILE
-        stop_haproxy_and_update
+        if stop_haproxy_and_update; then
+            echo "HAProxy stopped successfully." >> $LOG_FILE
+        else
+            echo "Error occurred while stopping HAProxy." >> $LOG_FILE
+        fi
+            update_bgp_configuration
+            echo "######################################################################################" >> $LOG_FILE
+            echo "" >> $LOG_FILE
     else
         # HAProxy is not running, so just update BGP configuration
-        echo "Keepalived backup state detected and, as intended, haproxy is not running." >> $LOG_FILE
+        echo "Keepalived backup state detected and haproxy is not running." >> $LOG_FILE
         update_bgp_configuration
     fi
 fi
