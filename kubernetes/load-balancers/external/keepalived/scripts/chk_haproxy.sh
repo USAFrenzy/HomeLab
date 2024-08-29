@@ -28,12 +28,12 @@ stop_haproxy_and_update() {
     fi
 }
 
-##############################################################################
-# NOTE: A better approach to the below logic would be to check keepalived's
-#       state but I currently don't know how to do that yet, so, a workaround
-#       is to check if the VIP is assigned to this VM. This assumes that the
-#       VIP is only assigned to the master node (admittedly, kind of hacky).
-##############################################################################
+######################################################################################################################
+#                                                  NOTE:
+# A better approach to the below logic would be to check keepalived's state but I currently don't know how to do that
+# reliably yet. So, a workaround is to check if the VIP is assigned to this VM. This assumes that the VIP is only
+# assigned to the master node (admittedly, kind of hacky).
+######################################################################################################################
 
 if ((LOGNAME_SIZE >= MAXSIZE)); then
     :> $LOG_FILE
