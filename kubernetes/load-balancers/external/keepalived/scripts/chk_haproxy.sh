@@ -5,7 +5,6 @@ VIP="192.168.20.5"
 BGP_UPDATE_SCRIPT="/usr/local/bin/bgp-update.sh"
 LOG_FILE="/var/log/keepalived-scripts.log"
 MAX_LOG_SIZE=1000000
-LOGNAME_SIZE=$(ls -l $LOG_FILE | awk '{print $5}')
 
 update_bgp_configuration() {
     echo "Updating BGP configuration." >> $LOG_FILE
@@ -35,7 +34,7 @@ stop_haproxy_and_update() {
 # assigned to the master node (admittedly, kind of hacky).
 ######################################################################################################################
 
-if ((LOGNAME_SIZE >= MAXSIZE)); then
+if (($(ls -l $LOG_FILE | awk '{print $5}') >= MAXSIZE)); then
     :> $LOG_FILE
     echo "" > $LOG_FILE
     echo "**********************************************************************************" > $LOG_FILE
