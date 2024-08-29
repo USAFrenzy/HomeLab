@@ -4,6 +4,8 @@
 VIP="192.168.20.5"
 BGP_UPDATE_SCRIPT="/usr/local/bin/bgp-update.sh"
 LOG_FILE="/var/log/keepalived-scripts.log"
+MAX_LOG_SIZE=1000000
+LOGNAME_SIZE=$(ls -l $LOG_FILE | awk '{print $5}')
 
 update_bgp_configuration() {
     echo "Updating BGP configuration." >> $LOG_FILE
@@ -32,6 +34,15 @@ stop_haproxy_and_update() {
 #       is to check if the VIP is assigned to this VM. This assumes that the
 #       VIP is only assigned to the master node (admittedly, kind of hacky).
 ##############################################################################
+
+if ((LOGNAME_SIZE >= MAXSIZE)); then
+    :> $LOG_FILE
+    echo "" > $LOG_FILE
+    echo "**********************************************************************************" > $LOG_FILE
+    echo "Log file was truncated due to max size reached." >> $LOG_FILE
+    echo "**********************************************************************************" > $LOG_FILE
+    echo "" > $LOG_FILE
+fi
 
 echo "######################################################################################" >> $LOG_FILE
 echo "Running chk_haproxy.sh at $(date)" >> $LOG_FILE
