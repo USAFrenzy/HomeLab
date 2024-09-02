@@ -4,18 +4,33 @@ metadata:
   name: import-external-routes
 spec:
   importV4:
+  # Server network
   - action: Accept
     matchOperator: In
     cidr: 10.243.0.0/29
     source: RemotePeers
     interface: "*"
+    # Lan 1
   - action: Accept
     matchOperator: In
     cidr: 192.168.3.0/29
     source: RemotePeers
     interface: "*"
+    # Wifi network
   - action: Accept
     matchOperator: In
     cidr: 192.168.50.0/24
+    source: RemotePeers
+    interface: "*"
+    # Lan 2
+  - action: Accept
+    matchOperator: In
+    cidr: 192.168.4.0/29
+    source: RemotePeers
+    interface: "*"
+    # VM network
+  - action: Accept
+    matchOperator: In
+    cidr: 192.168.20.0/27
     source: RemotePeers
     interface: "*"
