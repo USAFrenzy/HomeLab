@@ -2,7 +2,7 @@
 apiVersion: projectcalico.org/v3
 kind: BGPPeer
 metadata:
-  name: VIP-Peer
+  name: vip-peer
 spec:
   peerIP: 192.168.20.5
   asNumber: 65202
