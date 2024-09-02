@@ -31,6 +31,6 @@ spec:
     # VM network
   - action: Accept
     matchOperator: In
-    cidr: 192.168.20.0/27
+    cidr: 192.168.20.0/26
     source: RemotePeers
     interface: "*"
