@@ -1,13 +1,13 @@
-# This is simply the virtual ip address that the external load-balanced load balancer uses
-apiVersion: metallb.io/v1beta1
-kind: IPAddressPool
-metadata:
- name: loadbalancer-vip
- namespace: metallb-system
-spec:
- addresses:
- - 192.168.20.5/32
----
+# # This is simply the virtual ip address that the external load-balanced load balancer uses
+# apiVersion: metallb.io/v1beta1
+# kind: IPAddressPool
+# metadata:
+#  name: loadbalancer-vip
+#  namespace: metallb-system
+# spec:
+#  addresses:
+#  - 192.168.20.5/32
+# ---
 # Pool of IP addresses that MetalLB can assign to services
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
