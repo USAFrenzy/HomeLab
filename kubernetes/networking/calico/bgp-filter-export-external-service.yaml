@@ -5,5 +5,5 @@ metadata:
 spec:
   exportV4:
   - action: Accept
-    matchOperator: NotIn
+    matchOperator: In
     cidr: 10.243.160.0/27 # This is the range of IP addresses that matches the IP range available to MetalLB k8s-pool

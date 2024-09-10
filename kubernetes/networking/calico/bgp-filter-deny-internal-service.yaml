@@ -6,4 +6,4 @@ spec:
   exportV4:
   - action: Reject
     matchOperator: In
-    cidr: 10.244.0.0/16 # This is the range of IP addresses that matches the IP range available to MetalLB k8s-pool
+    cidr: 10.244.0.0/16

@@ -1,9 +1,0 @@
-apiVersion: projectcalico.org/v3
-kind: BGPFilter
-metadata:
-  name: deny-pod-network
-spec:
-  exportV4:
-  - action: Reject
-    matchOperator: In
-    cidr: 172.18.0.0/16 # This should match the podSubnet in the ClusterConfiguration
