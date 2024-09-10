@@ -4,6 +4,6 @@ metadata:
   name: deny-internal-service-network
 spec:
   exportV4:
-  - action: Accept
+  - action: Reject
     matchOperator: NotIn
     cidr: 10.244.0.0/16 # This is the range of IP addresses that matches the IP range available to MetalLB k8s-pool
