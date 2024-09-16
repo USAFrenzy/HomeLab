@@ -6,8 +6,8 @@ metadata:
   namespace: kube-system
 type: Opaque
 stringData:
-  email: mccullough.ryan123@gmail.com
-  apiKey: h7jRCWYJ0Pu-Ya2y6f74LMxAb-2DZ1eKfywxnTxW
+  email: "  "
+  apiKey: "  "
 ---
 apiVersion: v1
 kind: ConfigMap
