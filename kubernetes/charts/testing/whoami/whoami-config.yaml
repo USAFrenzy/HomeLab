@@ -17,6 +17,13 @@ spec:
       containers:
       - image: traefik/whoami
         name: whoami
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "256Mi"
+          requests:
+            cpu: "0.1"
+            memory: "64Mi"
 ---
 apiVersion: v1
 kind: Service
