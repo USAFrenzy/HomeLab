@@ -21,7 +21,7 @@ retry_join = [
   - Check the status and logs to ensure cluster creation and communication
     - ```sudo systemctl status consul``` and ```sudo journalctl -xeu consul```
   - Run ```consul members``` to validate that all nodes added to the cluster are ```alive```
-- Since we initially had the single Vault node registered without a ```node_name``` name value, it uses a default value of ```vault``` for this field. When we create a highly available vault cluster we start using node names for the vault nodes, so an orphaned health check service will be present when checking the vault node's health from consul.
+- Since we initially had the single Vault node registered without a ```node_name``` name value, it uses a default value of ```vault``` for this field. When we create a highly available vault cluster we start using node names for the vault nodes and consul agents, so an orphaned health check service will be present when checking the vault node's health from consul since the cluster will instead use the local agent on vault for health checks.
   - To rectify this, all we need to do is deregister the single vault node from health checks on consul
     - Run ```curl -s http://127.0.0.1:8500/v1/agent/services```
     - If you see something like ```"vault:<vault_node_ip>:8200"```, it will become stale when the vault cluster is created.
