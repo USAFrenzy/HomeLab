@@ -146,7 +146,7 @@
 
 
 # Looking Forward
-- Next, we will cover
+- Next, we'll cover
   - Migrating the consul and vault nodes to use the https scheme
   - Updating our load balancer frontend to use its own certificate so that we can:
     - Serve https traffic to the frontend
