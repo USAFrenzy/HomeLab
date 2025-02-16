@@ -104,6 +104,13 @@
     - the root CA certificate (```pki-root```'s or your external root CA that signed the CSR for ```pki-consul```'s certificate)
   - Repeat this process for each consul server node - if you have 3 nodes, you should have 3 individual combined certificate files
   - This provides the full CA chain file for the ```ca_file``` variable that we will be adding to the ```consul.hcl``` file
+- We are going to repeat this process for the Vault Consul Agent Certificates:
+  - Create a combined certificate file that contains the following in order:
+    - the vault's consul agent leaf certificate
+    - the intermediate CA certificate (```pki-consul```'s certificate)
+    - the root CA certificate (```pki-root```'s or your external root CA that signed the CSR for ```pki-consul```'s certificate)
+  - Repeat this process for each vault consul agent - if you have 3 nodes, you should have 3 individual combined certificate files
+    - This provides the full CA chain file for the ```tls_ca_file``` variable that we will be adding to the ```vault.hcl``` file on the vault nodes
 
 - SSH into each vault node:
   - Copy the Vault specific leaf certificate, full chain certificate, and the key to ```/etc/vault.d/tls``` for each respective node
