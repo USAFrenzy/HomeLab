@@ -65,4 +65,5 @@
    -  Click on ```Import Issuer```
 -  Now your Intermediate CA is all set
    -  Feel free to go and configure your intermediate CA, create Roles, and add in the Global URLs for your base intermediate CA and Issuers, Add an AIA (the ```https://vault.homelab.lan/v1/pki-intermediate/ca```), Add a cluster path (the ```https://vault.homelab.lan/v1/pki-intermediate``` path) if planning to use ACME later
-      -  All of these need to be done before generating any certificates so that this info is embedded into the cert that is issued later on
+      - Highly recommend setting up auto-tidy and enabling the auto rebuild of the CRL and OCSP if configuring and using the Global URLs and/or setting up ACME
+      - All of these need to be done before generating any certificates so that this info is embedded into the cert that is issued later on
