@@ -1,0 +1,68 @@
+# Creating PKI Secrets Engines
+
+
+## Setting Up A Root CA
+- Log into vault and navigate over to ```Secrets Engines``` tab
+- Click on ```Enable new engine +```
+- Click on ```PKI Certificates```
+- Change the path to whatever value makes sense for your use case
+- Feel free to modify the ```Max Lease TTL``` if you so wish (the default value is 3650 days == 10 years)
+- Scroll down and click ```Enable engine```
+- You should now see your PKI Engine named after whatever value you put for your ```path```
+- Click on the PKI Engine you just created
+- Click on ```Configure PKI``` in the top right corner
+- Hover over and select ```Generate root``` in the center
+- Under the ```Root parameters``` section:
+  - Type: choose the value that makes sense for you. If you want Vault to handle the storage of the private key, choose ```internal```. If you want to handle the storage of the private key, select ```external```. If you had a root CA outside of Vault that you want to import for easier management, select ```existing```. If this engine is being used as a key management system, then select ```KMS```.
+  - Common Name: Set this as whatever you want such as ```Root CA``` or ```Long Lived CA```
+  - Set ```TTL``` to whatever value you would like
+  - Expand ```Key parameters```
+    - Give the key a sensible name
+    - Choose the key type you want to use, ```rsa``` is the default
+    - If you chose ```rsa``` or ```ec```, set the ```Key bits``` value you would like to use
+  - If you plan on utilizing a centralized URL for issuing certs and CRL lists, scroll down to the ```Global URLs``` section
+    - Make each path point to your load balancer entrypoint + ```/v1/<pki-mount-path>/``` + URL Type (I.E. ```ca``` for issuing, ```crl``` for CRL, ```ocsp``` for Online Certificate Status Protocol)
+      - Example: If the name of this engine is pki-root, then the paths would be:
+        - ```https://vault.homelab.lan/v1/pki-root/ca```
+        - ```https://vault.homelab.lan/v1/pki-root/crl```
+        - ```https://vault.homelab.lan/v1/pki-root/ocsp```
+        - NOTE: If you plan to incorporate certs on each node and a cert for the load balancer endpoint, make this ```https``` to save some hassle on re-issuing certs later
+    - Scroll down and select ```Done```
+
+## Setting Up An Intermediate CA
+- This process is more or less identical to what we just did to set up the Root CA.
+- Navigate over to ```Secrets Engines``` tab
+- Click on ```Enable new engine +```
+- Click on ```PKI Certificates```
+- Change the path to whatever value makes sense for your use case
+- Feel free to modify the ```Max Lease TTL``` if you so wish (the default value is 3650 days == 10 years)
+- Scroll down and click ```Enable engine```
+- You should now see your PKI Engine named after whatever value you put for your ```path```
+- Click on the PKI Engine you just created
+- Click on ```Configure PKI``` in the top right corner
+-  Hover over and select ```Generate intermediate CSR``` in the center
+- Under the ```CSR parameters``` section:
+  - Type: choose the value that makes sense for you. If you want Vault to handle the storage of the private key, choose ```internal```. If you want to handle the storage of the private key, select ```external```. If you had a root CA outside of Vault that you want to import for easier management, select ```existing```. If this engine is being used as a key management system, then select ```KMS```.
+  - Common Name: Set this as whatever you want such as ```Root CA``` or ```Long Lived CA```
+  - Set ```TTL``` to whatever value you would like
+  - Feel Free to expand the ```Subject Alternative Name (SAN) Options``` and ```Additional subject fields``` sections and fill those out
+  - Click ```Generate```
+    - If you had set this to ```Type: exported```, be sure to copy your private key to a safe place
+    - Copy the certificate
+- Navigate over to the Root CA that you set up
+- Navigate to the ```Issuers``` tab
+- Click on the issuer present
+- At the top of the ```View Issuer Certificate``` page, click on ```Sign Intermediate```
+  - Paste in the copied CSR from the intermediate CA in the ```CSR``` box at the top
+  - Toggle the ```Use CSR values``` block to enable it
+  - Fill out the ```TTL``` field
+  - Scroll down and select ```Save```
+  - Copy the contents of the certificate that was just signed by the root
+- Navigate back over to your intermediate CA engine
+-  Click on ```Configure PKI``` in the top right corner
+   -  Hover over and select ```Import a CA``` in the center
+   -  Either upload the file if you saved the signed certificate to disk, or just toggle the ```Enter as text``` button and paste the copied certificate data
+   -  Click on ```Import Issuer```
+-  Now your Intermediate CA is all set
+   -  Feel free to go and configure your intermediate CA, create Roles, and add in the Global URLs for your base intermediate CA and Issuers, Add an AIA (the ```https://vault.homelab.lan/v1/pki-intermediate/ca```), Add a cluster path (the ```https://vault.homelab.lan/v1/pki-intermediate``` path) if planning to use ACME later
+      -  All of these need to be done before generating any certificates so that this info is embedded into the cert that is issued later on
