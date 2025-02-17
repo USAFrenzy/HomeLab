@@ -45,6 +45,7 @@
   - ```dc1``` - if different than ```dc1``` then this follows the ```server.<datacenter_name>.consul``` scheme
 - You *MUST* enable ```Allow IP SANs``` as consul uses IP addresses for inter-cluster communication
 
+
 ### For Vault:
 - Go to your vault pki engine
 - Scroll down to ```Issue certificate```
@@ -87,6 +88,38 @@
   - Copy the private key and certificate and store in a safe place, these will be used later to create the full chain needed
   - Repeat for each consul agent on each vault node
 
+### Creating A Load Balancer Entrypoint Intermediate CA
+- First, we need to create a certificate for the entry point on our load balancer so that when we send the request to our entry point, it's encrypted and then subsequently terminated at the load balancer before being re-encrypted and sent to our backend clusters.
+- In a similar manner to how we set up the consul and vault intermediate CAs, we're going to set up another intermediate CA for all of our load balancer related certificates.
+- Following the same procedure we used in the ```Setting Up An Intermediate CA``` section of ```Creating PKI Secrets Engines```, create a ```pki-loadbalancer``` engine
+- Once set up, configure the engine for the ```AIA``` path, ```Cluster path```, and the Global URLs for ```Isssuing```, ```CRL```, and ```OCSP```.
+- Populate all SAN related fields for ```Allowed Domains``` and the ```Additional SANs Options``` fields
+- Tune this engine to your preference for things like key usage and TTL, ensure that ```Server Auth``` and ```Client Auth``` are enabled in key usage
+- Create separate roles for each load balancer endpoint, or optionally, create a role to issue wildcard certificates
+- Create a certificate for your load balancer node(s) and VIP (if using multiple load balancers) and save the cert and key somewhere safe
+  - On the load balancer pki engine, create a certificate that covers the load balancer host and IP address
+    - Save the resulting certificates and private key somewhere safe
+  -  Create a combined certificate chain that will be used to present to the server backends:
+     - The private key
+     - The leaf cert
+     - The load balancer CA cert
+     - The root cert
+- Create a ca chain file that just contains the ca chain for the load balancer - this will be used as our ```tls_client_ca_file``` in the ```vault.hcl``` config:
+  - Load balancer cert
+  - Root CA cert
+- Next, generate certificates for your vault and consul entrypoints and save the certificates and keys somewhere safe.
+- Create a full chain certificate that includes the private key (this is necessary for terminating the connection at the load balancer and re-encrypting the connection)
+- Like for the load balancer full ca chain cert, we need to provide the frontend a full ca chain certificate to terminate the SSL connections
+  - For each entrypoint, create a full ca chain with:
+    - The private key
+    - The leaf cert
+    - The appropriate Intermediate CA cert (```pki-vault``` for vault's and ```pki-consul``` for consul's)
+    - The Root CA cert
+- Next, we need the Intermediate CA certificate and Root CA certificate to form a CA chain for the backends
+  - Create this combined chain file for vault and another for consul
+- Finally, for consul to trust our load balancer, we need to present our load balancer certificate chain on consul's backend (this is in preparation for mTLS)
+- We now have all the certificates that we need to make this next step work
+
 <br>
 
 # Distributing Certificates To The Nodes And Updating The Configs For Vault and Consul
@@ -111,16 +144,21 @@
     - the root CA certificate (```pki-root```'s or your external root CA that signed the CSR for ```pki-consul```'s certificate)
   - Repeat this process for each vault consul agent - if you have 3 nodes, you should have 3 individual combined certificate files
     - This provides the full CA chain file for the ```tls_ca_file``` variable that we will be adding to the ```vault.hcl``` file on the vault nodes
+  - For the load balancer certificates:
+    - Copy the full chain certificates for the load balancer, consul, and vault to the ```/etc/haproxy/certs``` directory
+    - Copy the CA chain certificates for vault, consul, and the load balancer to the ```/etc/haproxy/ca``` directory
+
+<br>
 
 - SSH into each vault node:
-  - Copy the Vault specific leaf certificate, full chain certificate, and the key to ```/etc/vault.d/tls``` for each respective node
+  - Copy the Vault specific leaf certificate and the key to ```/etc/vault.d/tls``` for each respective node, including the load balancer CA chain certificate
   - Next, copy the Consul Agent leaf certificate, full chain certificate, and the key to ```/etc/consul.d/tls``` for each respective node
   - Edit the ```/etc/vault.d/vault.hcl``` file on the vault node and add the following:
     - Under ```listerner "tcp"```
       - Ensure ```tls_disable = "false"```
       - Add ```tls_cert_file = "/etc/vault.d/tls/<vault_node_cert>"```
       - Add ```tls_key_file = "etc/vault.d/tls/<vault_node_key>"```
-      - Add ```tls_client_ca_file = "/etc/vault.d/tls/<vault_node_fullchain_cert>"```
+      - Add ```tls_client_ca_file = "/etc/vault.d/tls/<load-balancer-pki-ca-chain-cert>"```
     - Under ```storage "consul"```
       - Add ```tls_ca_file    = "/etc/consul.d/tls/<vault_consul_agent_fullchain_cert>"```
       - Add ```tls_cert_file  = "/etc/consul.d/tls/<vault_consul_agent_cert>"```
