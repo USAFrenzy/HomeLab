@@ -207,10 +207,10 @@ backend no_route
 
 backend vault_health
     mode http
-    # checks whether it's a healthy active or standby node
-    option httpchk GET /v1/sys/health?standbyok=true
-    # returns either OK, Active, or Standby code
-    http-check expect rstatus ^(200|429|503)$
+    # checks whether it's a healthy active node, marking standby as down (unroutable)
+    option httpchk GET /v1/sys/health?standbyok=false
+    # returns either OK if the above check resulted in the active node
+    http-check expect rstatus 200
     # For each of these, we are sending an un-proxied connection to the second tcp listener (port 8201) and forwarding the SNI of each node. We enforce TLS 1.3 and present the load balancer ca chain to the node
     # that will be verified and matched with the ca chain we provided in vault's config on tls_client_ca_file.
     server vault-01 192.168.20.6:8201 ssl check no-send-proxy check-sni vault-01.homelab.lan verify required ca-file /etc/haproxy/ca/pki-vault-chain.pem ssl-min-ver TLSv1.3 crt /etc/haproxy/ca/pki-lb-chain.pem
