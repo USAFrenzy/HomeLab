@@ -221,10 +221,11 @@ backend vault_backend
     mode http
     balance roundrobin
     # For each server, we now send the proxy header to allow vault to glean the actual client's IP address - this can be used for restricting access based on token restrictions. Just like with the health check above, we forward
-    # the SNI of each node and enforce TLS 1.3 while presenting the load balancer ca chain to the node that will be verified and matched with the ca chain we provided in vault's config on tls_client_ca_file.
-    server vault-01 192.168.20.6:8200 send-proxy track vault_health/vault-01 ssl sni str("vault-01.homelab.lan") verify required ca-file /etc/haproxy/ca/pki-vault-chain.pem ssl-min-ver TLSv1.3 crt /etc/haproxy/ca/pki-lb-chain.pem
-    server vault-02 192.168.20.7:8200 send-proxy track vault_health/vault-02 ssl sni str("vault-02.homelab.lan") verify required ca-file /etc/haproxy/ca/pki-vault-chain.pem ssl-min-ver TLSv1.3 crt /etc/haproxy/ca/pki-lb-chain.pem
-    server vault-03 192.168.20.8:8200 send-proxy track vault_health/vault-03 ssl sni str("vault-03.homelab.lan") verify required ca-file /etc/haproxy/ca/pki-vault-chain.pem ssl-min-ver TLSv1.3 crt /etc/haproxy/ca/pki-lb-chain.pem
+    # the SNI of each node and enforce TLS 1.3 while presenting the load balancer ca chain to the node that will be verified and matched with the ca chain we provided in vault's config on tls_client_ca_file. We add the source
+    # directive to essentially forward the IP address that hit our aliased entrypoint and allow vault to parse this proxy header from a trusted source (the IP address we configured in vault's config)
+    server vault-01 192.168.20.6:8200 send-proxy source load-balancer.homelab.lan track vault_health/vault-01 ssl sni str("vault-01.homelab.lan") verify required ca-file /etc/haproxy/ca/pki-vault-chain.pem ssl-min-ver TLSv1.3 crt /etc/haproxy/ca/pki-lb-chain.pem
+    server vault-02 192.168.20.7:8200 send-proxy source load-balancer.homelab.lan track vault_health/vault-02 ssl sni str("vault-02.homelab.lan") verify required ca-file /etc/haproxy/ca/pki-vault-chain.pem ssl-min-ver TLSv1.3 crt /etc/haproxy/ca/pki-lb-chain.pem
+    server vault-03 192.168.20.8:8200 send-proxy source load-balancer.homelab.lan track vault_health/vault-03 ssl sni str("vault-03.homelab.lan") verify required ca-file /etc/haproxy/ca/pki-vault-chain.pem ssl-min-ver TLSv1.3 crt /etc/haproxy/ca/pki-lb-chain.pem
 
 backend consul_backend
     mode http
@@ -236,13 +237,25 @@ backend consul_backend
     server consul-03 192.168.20.11:8501 check ssl verify required ca-file /etc/haproxy/ca/pki-consul-chain.pem ssl-min-ver TLSv1.3 crt /etc/haproxy/ca/pki-lb-chain.pem
 
 ```
-  - Restart consul agents and servers on all nodes
-  - Restart vault service on vault nodes
-  - Restart load balancer service on all applicable nodes
-  - Ensure that consul nodes rejoin cluster
-  - Ensure vault nodes successfully start and that their consul agents are communicating with the consul servers
-  - Ensure your load balancer service starts
-  - Unseal the vault nodes -> profit
+- Restart consul agents and servers on all nodes
+- Restart vault service on vault nodes
+- Restart load balancer service on all applicable nodes
+- Ensure that consul nodes rejoin cluster
+- Ensure vault nodes successfully start and that their consul agents are communicating with the consul servers
+- Ensure your load balancer service starts
+- Unseal the vault nodes -> profit
+
+<br>
+
+- Last but not least, let's enable auditing - we set up client ip address proxy forwarding, so we should enable auditing anyways to take advantage of that.
+  - On the active vault node (this will be replicated to the other nodes when not in standby):
+    - Run ```export VAULT_ADDR=https://vault.homelab.lan``` - use your entrypoint
+    - Run ```export VAULT_CACERT=/etc/vault.d/tls/<vault_node>_fullchain.crt```
+    - Create the log file: ```sudo touch /var/log/vault_audit.log```
+    - Give vault ownership: ```sudo chown vault:vault /var/log/vault_audit.log```
+    - Then restrict permissions to the file: ```sudo chmod 640 /var/log/vault_audit.log```
+    - Finally, run: ```vault audit enable file file_path=/var/log/vault_audit.log```
+  - With that, auditing is now enabled on our vault cluster
 
 <br>
 <br>
